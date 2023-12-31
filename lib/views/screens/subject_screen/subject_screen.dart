@@ -143,7 +143,7 @@ class _SubjectScreenState extends State<SubjectScreen> {
                                               icon: const Icon(Icons.search),
                                               tooltip: 'Search',
                                               onPressed: () {
-                                                print(_source.selectedIds);
+                                              //  print(_source.selectedIds);
                                                 setState(() {
                                                   _searchController.text = '';
                                                 });
@@ -271,6 +271,14 @@ class _SubjectScreenState extends State<SubjectScreen> {
                                           ),
                                           DataColumn(
                                             label: const Text('Subject Type'),
+                                            onSort: setSort,
+                                          ),
+                                          DataColumn(
+                                            label: const Text('Minimum Marks'),
+                                            onSort: setSort,
+                                          ),
+                                          DataColumn(
+                                            label: const Text('Maximum Marks'),
                                             onSort: setSort,
                                           ),
                                           const DataColumn(
@@ -491,7 +499,7 @@ class ExampleSource extends AdvancedDataTableSource<subjectModal> {
 
     if (response.statusCode == 200) {
       final data = jsonDecode(response.body)["rows"];
-      print(data);
+     // print(data);
       var le = data.length;
       return RemoteDataSourceDetails(
         int.parse(le.toString()),

@@ -29,7 +29,7 @@ class SubjectApiService {
     //var userUrl = Uri.parse('${studentUrl}get',);
     final requestUri = Uri.http('localhost:8080', '/api/subject');
     final res = await get(requestUri, headers: headers);
-    print(res.body);
+   // print(res.body);
     return res;
   }
 
