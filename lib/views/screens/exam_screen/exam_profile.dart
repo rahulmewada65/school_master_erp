@@ -394,15 +394,19 @@ class _ExamProfileScreenState extends State<ExamProfileScreen> {
                                               onSort: setSort,
                                             ),
                                             DataColumn(
-                                              label: const Text('Roll Number'),
+                                              label: const Text('Subject Name'),
                                               onSort: setSort,
                                             ),
                                             DataColumn(
-                                              label: const Text('Full Name'),
+                                              label: const Text('Subject Type'),
                                               onSort: setSort,
                                             ),
                                             DataColumn(
-                                              label: const Text('Phone'),
+                                              label: const Text('Minimum Marks'),
+                                              onSort: setSort,
+                                            ),
+                                            DataColumn(
+                                              label: const Text('Maximum Marks'),
                                               onSort: setSort,
                                             ),
                                           ],
@@ -1354,6 +1358,7 @@ class ExampleSource extends AdvancedDataTableSource<ExamProfileModal> {
     };
      final response = await apiService2.getSubjectList();
     final data = jsonDecode(response.body);
+    //print(data);
     final List<ExamProfileModal> paginatedData = (data['rows'] as List<dynamic>)
         .map((json) => ExamProfileModal.fromJson(json as Map<String, dynamic>))
         .toList();

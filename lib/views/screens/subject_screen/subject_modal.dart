@@ -6,11 +6,15 @@ class subjectModal {
   final int id;
   final String name;
   final String subjectType;
+  final int maxMarks;
+  final int minPassingMarks;
 
   const subjectModal(
-    this.id,
-    this.name,
-    this.subjectType,
+      this.id,
+      this.name,
+      this.subjectType,
+      this.maxMarks,
+      this.minPassingMarks,
   );
 
   DataRow getRow(SelectedCallBack callback, List<String> selectedIds,
@@ -27,6 +31,8 @@ class subjectModal {
           );
         })),
         DataCell(Text(subjectType)),
+        DataCell(Text(minPassingMarks.toString())),
+        DataCell(Text(maxMarks.toString())),
         DataCell(Builder(
           builder: (context) {
             return Row(
@@ -80,9 +86,11 @@ class subjectModal {
 
   factory subjectModal.fromJson(Map<String, dynamic> json) {
     return subjectModal(
-      json['id'] as int,
-      json['name'] != null ? json['name'] as String : "",
-      json['subjectType'] != null ? json['subjectType'] as String : "",
+        json['id'] as int,
+        json['name'] != null ? json['name'] as String : "",
+        json['subjectType'] != null ? json['subjectType'] as String : "",
+        json["minPassingMarks"]!= null ? json['minPassingMarks'] as int : 0,
+        json["maxMarks"]!= null ? json['maxMarks'] as int : 0
     );
   }
 
@@ -91,6 +99,8 @@ class subjectModal {
       'id': id,
       'name': name,
       'subjectType': subjectType,
+      "minPassingMarks": minPassingMarks,
+      "maxMarks": maxMarks
     };
   }
 }

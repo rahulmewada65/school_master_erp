@@ -222,6 +222,54 @@ class _AddSubjectScreenState extends State<AddSubjectScreen> {
               },
             ),
           ),
+          Padding(
+            padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                return Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SizedBox(
+                      width: ((constraints.maxWidth * 0.5) -
+                          (kDefaultPadding * 0.5)),
+                      child: FormBuilderTextField(
+                        name: 'minimum_marks',
+                        decoration: const InputDecoration(
+                          labelText: 'Minimum Marks',
+                        //  hintText: '123456789',
+                         // helperText: 'Helper text',
+                          border: OutlineInputBorder(),
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                        ),
+                        initialValue:'33',
+                        validator: FormBuilderValidators.required(),
+                        onSaved: (value) =>
+                        (_formData.minPassingMarks = value ?? ''),
+                      ),
+                    ),
+                    const SizedBox(width: kDefaultPadding),
+                    SizedBox(
+                      width: ((constraints.maxWidth * 0.5) -
+                          (kDefaultPadding * 0.5)),
+                      child: FormBuilderTextField(
+                        name: 'maximum_marks',
+                        decoration: const InputDecoration(
+                          labelText: 'Maximum Marks',
+                          // hintText: '1234556',
+                          // helperText: 'Helper text',
+                          border: OutlineInputBorder(),
+                          floatingLabelBehavior: FloatingLabelBehavior.always,
+                        ),
+                       initialValue: "100",
+                        validator: FormBuilderValidators.required(),
+                        onSaved: (value) => (_formData.maxMarks = value ?? ''),
+                      ),
+                    ),
+                  ],
+                );
+              },
+            ),
+          ),
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -313,8 +361,12 @@ class _AddSubjectScreenState extends State<AddSubjectScreen> {
 class FormData {
   String subjetName = '';
   String subjectType = '';
+  String minPassingMarks ='';
+  String maxMarks = '';
   Map<String, dynamic> toJson() => {
         "name": subjetName,
         'subjectType': subjectType,
+        'minPassingMarks':minPassingMarks,
+        'maxMarks':maxMarks
       };
 }

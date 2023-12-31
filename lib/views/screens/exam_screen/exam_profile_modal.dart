@@ -125,19 +125,19 @@ class ExamProfileModal {
   factory ExamProfileModal.fromJson(Map<String, dynamic> json) {
     return ExamProfileModal(
         json['id'] != null ? json['id'] as int : 0,
-        json['subjectName'] != null ? json['subjectName'] as String : "",
+        json['name'] != null ? json['name'] as String : "",
         json['subjectType'] != null ? json['subjectType'] as String : "",
-        json['minimumNumber'] != null ? json['minimumNumber'] as String : "",
-        json['maximumNumber'] != null ? json['maximumNumber'] as String : "");
+        json['minPassingMarks'] != null ? json['minPassingMarks'] as String : "",
+        json['maxMarks'] != null ? json['maxMarks'] as String : "");
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'subjectName': subjectName,
+      'name': subjectName,
       'subjectType': subjectType,
-      'minimumNumber': minimumNumber,
-      'maximumNumber': maximumNumber,
+      'minPassingMarks': minimumNumber,
+      'maxMarks': maximumNumber,
     };
   }
 }
