@@ -558,8 +558,8 @@ class _ClassProfileScreenState extends State<ClassProfileScreen> {
     final lang = Lang.of(context);
     final themeData = Theme.of(context);
     final appDataTableTheme = themeData.extension<AppDataTableTheme>()!;
-
     return PortalMasterLayout(
+      selectedMenuUri: RouteUri.classes,
       body: ListView(
         padding: const EdgeInsets.all(kDefaultPadding),
         children: [
@@ -1138,6 +1138,12 @@ class _ClassProfileScreenState extends State<ClassProfileScreen> {
                                                         label: Text(
                                                             'Subject Type')),
                                                     const DataColumn(
+                                                        label: Text(
+                                                            'Minimum Marks')),
+                                                    const DataColumn(
+                                                        label: Text(
+                                                            'Maximum Marks')),
+                                                    const DataColumn(
                                                       label: Text('Action'),
                                                     ),
                                                   ],
@@ -1151,9 +1157,6 @@ class _ClassProfileScreenState extends State<ClassProfileScreen> {
                                                       index: index,
                                                       cells: [
                                                         DataCell(
-
-
-
                                                           FormBuilderCheckbox(
                                                             name:
                                                                 'accept_terms',
@@ -1189,6 +1192,10 @@ class _ClassProfileScreenState extends State<ClassProfileScreen> {
                                                             "${classData.isNotEmpty ? classData[0]['stClass']!= null ?classData[0]['stClass']["subject"][index]["name"] :"": ''}")),
                                                         DataCell(Text(
                                                             "${classData.isNotEmpty ? classData[0]['stClass']!= null ?classData[0]['stClass']["subject"][index]["subjectType"]:"" : ''}")),
+                                                        DataCell(Text(
+                                                            "${classData.isNotEmpty ? classData[0]['stClass']!= null ?classData[0]['stClass']["subject"][index]["minPassingMarks"]:"" : ''}")),
+                                                        DataCell(Text(
+                                                            "${classData.isNotEmpty ? classData[0]['stClass']!= null ?classData[0]['stClass']["subject"][index]["maxMarks"]:"" : ''}")),
                                                         DataCell(Builder(
                                                           builder: (context) {
                                                             return Row(

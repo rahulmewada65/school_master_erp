@@ -17,7 +17,6 @@ class ClassApiService {
   var feeurl = '${Constants.BASE_URL}/feesElement/';
   var strucurl = '${Constants.BASE_URL}/feesStructure/';
   var clsurl = '${Constants.BASE_URL}/class';
-  var examurl = '${Constants.BASE_URL}/exam';
 
   // /api/studentFeesStructure/getByStudentId/2/2022-24
 
@@ -75,24 +74,7 @@ class ClassApiService {
 
 
 
-  Future<Response?> addExamApi(
-      Map<String, dynamic> formData,
-      ) async {
-    var tokan = await storage.read(key: "accessToken");
-    Map<String, String> headers = {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer $tokan'
-    };
-    print(examurl);
-    print(formData);
-    var userUrl = Uri.parse(examurl);
-    var res = await post(
-      userUrl,
-      body: jsonEncode(formData),
-      headers: headers,
-    );
-    return res;
-  }
+
 }
 
 

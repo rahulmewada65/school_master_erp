@@ -17,6 +17,7 @@ class ExamApiService {
   var feeurl = '${Constants.BASE_URL}/feesElement/';
   var strucurl = '${Constants.BASE_URL}/feesStructure/';
   var suburl = '${Constants.BASE_URL}/subject';
+  var examurl = '${Constants.BASE_URL}/exam';
 
   // /api/studentFeesStructure/getByStudentId/2/2022-24
 
@@ -33,29 +34,28 @@ class ExamApiService {
     return res;
   }
 
-  Future<Response> getExamById(String id, String session) async {
+  Future<Response> getExamById(String id) async {
     var token = await storage.read(key: "accessToken");
     Map<String, String> headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $token'
     };
     var userUrl =
-        Uri.parse('${Constants.BASE_URL}/payFees/getByStudentId/$id/$session');
+        Uri.parse('${Constants.BASE_URL}/exam/$id');
     final res = await get(userUrl, headers: headers);
     return res;
   }
 
+
   Future<Response?> addExamApi(
-    Map<String, dynamic> formData,
-  ) async {
+      Map<String, dynamic> formData,
+      ) async {
     var tokan = await storage.read(key: "accessToken");
     Map<String, String> headers = {
       'Content-Type': 'application/json',
       'Authorization': 'Bearer $tokan'
     };
-    print(suburl);
-    print(formData);
-    var userUrl = Uri.parse(suburl);
+    var userUrl = Uri.parse(examurl);
     var res = await post(
       userUrl,
       body: jsonEncode(formData),
