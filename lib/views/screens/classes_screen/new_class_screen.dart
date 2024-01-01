@@ -178,7 +178,6 @@ class _AddClassScreenState extends State<AddClassScreen> {
   Widget _content(BuildContext context) {
     final lang = Lang.of(context);
     final themeData = Theme.of(context);
-
     final appColorScheme = Theme.of(context).extension<AppColorScheme>()!;
     return FormBuilder(
       key: _formKey,
@@ -307,7 +306,7 @@ class _AddClassScreenState extends State<AddClassScreen> {
                   style:
                       themeData.extension<AppButtonTheme>()!.secondaryElevated,
                   onPressed: () =>
-                      GoRouter.of(context).go(RouteUri.subject_screen),
+                      GoRouter.of(context).go(RouteUri.classes),
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,

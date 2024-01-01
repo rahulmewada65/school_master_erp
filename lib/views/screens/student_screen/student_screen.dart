@@ -15,6 +15,7 @@ import 'package:printing/printing.dart';
 import 'package:school_master_erp/services/profile_service.dart';
 import 'package:school_master_erp/views/widgets/card_elements.dart';
 import 'package:pdf/widgets.dart' as pw;
+import '../../../app_router.dart';
 import '../../../constants/dimens.dart';
 // import '../../../generated/l10n.dart';
 import '../../../services/api_service.dart';
@@ -1386,6 +1387,7 @@ class _StudentScreen extends State<StudentScreen> {
     final themeData = Theme.of(context);
     final appButtonTheme = themeData.extension<AppButtonTheme>()!;
     return PortalMasterLayout(
+      selectedMenuUri: RouteUri.crud,
       body: Stepper(
         type: stepperType,
         controlsBuilder: (context, _) {

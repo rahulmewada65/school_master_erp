@@ -15,6 +15,7 @@ import '../../../constants/dimens.dart';
 import '../../../generated/l10n.dart';
 import '../../../services/api_service.dart';
 import '../../../services/class_api_service.dart';
+import '../../../services/exam_api_service.dart';
 import '../../../services/subject_api_service.dart';
 import '../../../theme/theme_extensions/app_button_theme.dart';
 import '../../../theme/theme_extensions/app_color_scheme.dart';
@@ -24,6 +25,7 @@ import '../../widgets/card_elements.dart';
 import '../../widgets/portal_master_layout/portal_master_layout.dart';
 import '../subject_screen/subject_modal.dart';
 import 'exam_profile_modal.dart';
+import 'exam_subject_modal.dart';
 
 
 
@@ -54,34 +56,40 @@ class _AddExamScreenState extends State<AddExamScreen> {
   var subjectList1;
   var element = [];
   List res = [];
+  var selectedSubjectList=[];
 
   final SubjectApiService apiService = SubjectApiService();
   final ClassApiService apiClassService = ClassApiService();
-  _getDataAsync() async {
-    final response = await apiService.getSubjectList();
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body)["rows"];
-      List<FormBuilderChipOption<Object?>> optionElement1 = [];
-      for (var value in data) {
-        optionElement1.add(FormBuilderChipOption(
-            value: value,
-            child: Text(value["name"].isNotEmpty
-                ? value["name"] + " - " + value["subjectType"]
-                : "")));
-      }
+  final ExamApiService examApiService = ExamApiService();
 
-      setState(() {
-        subjectList1 = optionElement1;
-      });
-    }
-  }
 
   @override
   initState() {
     super.initState();
-    _getDataAsync();
     _searchController3.text = '';
     _source = ExampleSource();
+  }
+
+  assignSubject() async {
+    final response = await apiService.getSubjectList();
+  if (response.statusCode == 200) {
+  final data = jsonDecode(response.body)["rows"];
+  List<String> targetIds =  ExampleSource.selectedIds;
+  List<Map<String, dynamic>> subjects = List<Map<String, dynamic>>.from(data);
+  List<Map<String, dynamic>> filteredSubjects = subjects
+      .where((subject) => targetIds.contains(subject["id"].toString()))
+      .toList();
+  List<Map<String, dynamic>> updatedSubjects = filteredSubjects.map((subject) {
+    return {
+      ...subject,
+      'subjectId': subject['id'], // Create a new key "subjectID" with the value of the old "id"
+    }..remove('id'); // Remove the old key "id"
+  }).toList();
+  setState(() {
+    selectedSubjectList = updatedSubjects;
+  });
+}
+   Navigator.pop(context);
   }
   Future showOptionsDialog(BuildContext context) {
     final lang = Lang.of(context);
@@ -247,7 +255,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
                                               icon: const Icon(
                                                   Icons.add_circle_outline),
                                               tooltip: 'Add New Student',
-                                              onPressed: () => {}),
+                                              onPressed: () => assignSubject()),
                                         ),
                                       ),
                                     ),
@@ -480,6 +488,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
           });
         });
   }
+
   void _doSubmit(BuildContext context) {
     AppFocusHelper.instance.requestUnfocus();
     if (_formKey.currentState?.validate() ?? false) {
@@ -501,9 +510,9 @@ class _AddExamScreenState extends State<AddExamScreen> {
               btnOkOnPress: () async {
                 // var obj = ;
                 _formKey.currentState!.save();
-               // print(_formData.toJson());
-                var res = await apiClassService.addExamApi(_formData.toJson());
-                // print(res?.statusCode);
+                print("hello $_formData");
+                var res = await examApiService.addExamApi(_formData.toJson());
+                 print(res?.statusCode);
                 if (res?.statusCode == 201) {
                   GoRouter.of(context).go(RouteUri.exam_screen);
                 }
@@ -549,9 +558,10 @@ class _AddExamScreenState extends State<AddExamScreen> {
   @override
   Widget build(BuildContext context ) {
 
-    // final lang = Lang.of(context);
-    // final themeData = Theme.of(context);
-    // final appColorScheme = Theme.of(context).extension<AppColorScheme>()!;
+    final lang = Lang.of(context);
+    final themeData = Theme.of(context);
+    ButtonStyle buttonStyle = const ButtonStyle();
+    final appColorScheme = Theme.of(context).extension<AppColorScheme>()!;
     return PortalMasterLayout(
       selectedMenuUri: RouteUri.exam_screen,
       body: ListView(
@@ -565,10 +575,180 @@ class _AddExamScreenState extends State<AddExamScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const CardHeader(
-                    title: "Add Class",
+                    title: "CREATE EXAM",
                   ),
                   CardBody(
-                    child: _content(context),
+                    child: FormBuilder(
+                      key: _formKey,
+                      autovalidateMode: AutovalidateMode.disabled,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: kDefaultPadding * 1.5),
+                            child: FormBuilderTextField(
+                              name: 'Exam_Name',
+                              decoration: const InputDecoration(
+                                labelText: 'Exam Name',
+                                hintText: 'Exam Name',
+                                border: OutlineInputBorder(),
+                                floatingLabelBehavior: FloatingLabelBehavior.always,
+                              ),
+                              //initialValue: _formData.item,
+                              validator: FormBuilderValidators.required(),
+                              onSaved: (value) => (_formData.name = value ?? ''),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
+                            child: LayoutBuilder(
+                              builder: (context, constraints) {
+                                return  FormBuilderRadioGroup(
+                                  name: 'Exam_Type',
+                                  wrapSpacing: kDefaultPadding,
+                                  decoration: const InputDecoration(
+                                    labelText: 'Exam Type',
+                                    border: OutlineInputBorder(),
+                                  ),
+                                  initialValue: _formData.type,
+                                  options: const [
+                                    FormBuilderFieldOption(
+                                        value: 'ONLINE', child: Text('Online')),
+                                    FormBuilderFieldOption(
+                                        value: 'OFFLINE', child: Text('Offline')),
+                                  ],
+                                  onSaved: (value) => (_formData.type = value ?? ''),
+                                );
+                              },
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.only(bottom: kDefaultPadding * 1.5),
+                            child: Align(
+                              alignment: Alignment.centerRight, // or Alignment.bottomRight
+                              child: TextButton(
+                                onPressed: ()   {showOptionsDialog(context);},
+                                style: buttonStyle,
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: const [
+                                    Padding(
+                                      padding: EdgeInsets.only(right: kTextPadding),
+                                      child: Icon(Icons.add_box_outlined),
+                                    ),
+                                    Text('Add Subject'),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+
+                          Padding(
+                              padding: const EdgeInsets.only(bottom: kDefaultPadding * 1.5),
+                              child: FormBuilderFilterChip(
+                                name: 'Theory_Subject',
+                                spacing: kDefaultPadding * 0.5,
+                                runSpacing: kDefaultPadding * 0.5,
+                                selectedColor: appColorScheme.warning,
+                                decoration: const InputDecoration(
+                                  labelText: 'Subject List',
+                                  //helperText: 'Theory Subject',
+                                  border: OutlineInputBorder(),
+                                ),
+                                initialValue: selectedSubjectList,
+                                options: selectedSubjectList.map((subject) => FormBuilderChipOption(
+                                  value: subject,
+                                  child: Text(subject["name"]),
+                                ))
+                                    .toList(),
+                                onSaved: (value) => (_formData.examSubjectDetails = selectedSubjectList ?? []),
+                                //options: subjectList1,
+                              )),
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.center,
+                            children: [
+                              SizedBox(
+                                height: 40.0,
+                                child: ElevatedButton(
+                                  style:
+                                  themeData.extension<AppButtonTheme>()!.secondaryElevated,
+                                  onPressed: () =>
+                                      GoRouter.of(context).go(RouteUri.exam_screen),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding:
+                                        const EdgeInsets.only(right: kDefaultPadding * 0.5),
+                                        child: Icon(
+                                          Icons.arrow_circle_left_outlined,
+                                          size: (themeData.textTheme.button!.fontSize! + 4.0),
+                                        ),
+                                      ),
+                                      Text(lang.crudBack),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const Spacer(),
+                              Visibility(
+                                visible: widget.id.isNotEmpty,
+                                child: Padding(
+                                  padding: const EdgeInsets.only(right: kDefaultPadding),
+                                  child: SizedBox(
+                                    height: 40.0,
+                                    child: ElevatedButton(
+                                      style:
+                                      themeData.extension<AppButtonTheme>()!.errorElevated,
+                                      onPressed: () => _doDelete(context),
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        crossAxisAlignment: CrossAxisAlignment.center,
+                                        children: [
+                                          Padding(
+                                            padding: const EdgeInsets.only(
+                                                right: kDefaultPadding * 0.5),
+                                            child: Icon(
+                                              Icons.delete_rounded,
+                                              size:
+                                              (themeData.textTheme.button!.fontSize! + 4.0),
+                                            ),
+                                          ),
+                                          Text(lang.crudDelete),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              SizedBox(
+                                height: 40.0,
+                                child: ElevatedButton(
+                                  style: themeData.extension<AppButtonTheme>()!.successElevated,
+                                  onPressed: () => _doSubmit(context),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Padding(
+                                        padding:
+                                        const EdgeInsets.only(right: kDefaultPadding * 0.5),
+                                        child: Icon(
+                                          Icons.check_circle_outline_rounded,
+                                          size: (themeData.textTheme.button!.fontSize! + 4.0),
+                                        ),
+                                      ),
+                                      Text(lang.submit),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
+                      ),
+                    )
                   ),
                 ],
               ),
@@ -576,180 +756,7 @@ class _AddExamScreenState extends State<AddExamScreen> {
           ),
         ],
       ),
-    );
-  }
 
-  Widget _content(BuildContext context,  ) {
-    final lang = Lang.of(context);
-    final themeData = Theme.of(context);
-    ButtonStyle buttonStyle = const ButtonStyle();
-    final appColorScheme = Theme.of(context).extension<AppColorScheme>()!;
-    return FormBuilder(
-      key: _formKey,
-      autovalidateMode: AutovalidateMode.disabled,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Padding(
-            padding: const EdgeInsets.only(bottom: kDefaultPadding * 1.5),
-            child: FormBuilderTextField(
-              name: 'Exam_Name',
-              decoration: const InputDecoration(
-                labelText: 'Exam Name',
-                hintText: 'Exam Name',
-                border: OutlineInputBorder(),
-                floatingLabelBehavior: FloatingLabelBehavior.always,
-              ),
-              //initialValue: _formData.item,
-              validator: FormBuilderValidators.required(),
-              onSaved: (value) => (_formData.name = value ?? ''),
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return  FormBuilderRadioGroup(
-                        name: 'Exam_Type',
-                        wrapSpacing: kDefaultPadding,
-                        decoration: const InputDecoration(
-                          labelText: 'Exam Type',
-                          border: OutlineInputBorder(),
-                        ),
-                        initialValue: _formData.type,
-                        options: const [
-                          FormBuilderFieldOption(
-                              value: 'ONLINE', child: Text('Online')),
-                          FormBuilderFieldOption(
-                              value: 'OFFLINE', child: Text('Offline')),
-                        ],
-                        onSaved: (value) => (_formData.type = value ?? ''),
-                      );
-              },
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(bottom: kDefaultPadding * 1.5),
-            child: Align(
-              alignment: Alignment.centerRight, // or Alignment.bottomRight
-              child: TextButton(
-                onPressed: ()   {showOptionsDialog(context);},
-                style: buttonStyle,
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: const [
-                    Padding(
-                      padding: EdgeInsets.only(right: kTextPadding),
-                      child: Icon(Icons.add_box_outlined),
-                    ),
-                    Text('Add Subject'),
-                  ],
-                ),
-              ),
-            ),
-          ),
-
-          Padding(
-              padding: const EdgeInsets.only(bottom: kDefaultPadding * 1.5),
-              child: FormBuilderFilterChip(
-                name: 'Theory_Subject',
-                spacing: kDefaultPadding * 0.5,
-                runSpacing: kDefaultPadding * 0.5,
-                selectedColor: appColorScheme.warning,
-                decoration: const InputDecoration(
-                  labelText: 'Subject List',
-                  //helperText: 'Theory Subject',
-                  border: OutlineInputBorder(),
-                ),
-                options: subjectList1 ?? [],
-                // options:
-                // optionElement,
-               onSaved: (value) => (_formData.examSubjectDetails = value ?? []),
-              )),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: [
-              SizedBox(
-                height: 40.0,
-                child: ElevatedButton(
-                  style:
-                  themeData.extension<AppButtonTheme>()!.secondaryElevated,
-                  onPressed: () =>
-                      GoRouter.of(context).go(RouteUri.exam_screen),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding:
-                        const EdgeInsets.only(right: kDefaultPadding * 0.5),
-                        child: Icon(
-                          Icons.arrow_circle_left_outlined,
-                          size: (themeData.textTheme.button!.fontSize! + 4.0),
-                        ),
-                      ),
-                      Text(lang.crudBack),
-                    ],
-                  ),
-                ),
-              ),
-              const Spacer(),
-              Visibility(
-                visible: widget.id.isNotEmpty,
-                child: Padding(
-                  padding: const EdgeInsets.only(right: kDefaultPadding),
-                  child: SizedBox(
-                    height: 40.0,
-                    child: ElevatedButton(
-                      style:
-                      themeData.extension<AppButtonTheme>()!.errorElevated,
-                      onPressed: () => _doDelete(context),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Padding(
-                            padding: const EdgeInsets.only(
-                                right: kDefaultPadding * 0.5),
-                            child: Icon(
-                              Icons.delete_rounded,
-                              size:
-                              (themeData.textTheme.button!.fontSize! + 4.0),
-                            ),
-                          ),
-                          Text(lang.crudDelete),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              SizedBox(
-                height: 40.0,
-                child: ElevatedButton(
-                  style: themeData.extension<AppButtonTheme>()!.successElevated,
-                  onPressed: () => _doSubmit(context),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    children: [
-                      Padding(
-                        padding:
-                        const EdgeInsets.only(right: kDefaultPadding * 0.5),
-                        child: Icon(
-                          Icons.check_circle_outline_rounded,
-                          size: (themeData.textTheme.button!.fontSize! + 4.0),
-                        ),
-                      ),
-                      Text(lang.submit),
-                    ],
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
   void setSort(int i, bool asc) {
@@ -765,7 +772,7 @@ typedef SelectedCallBack = Function(String id, bool newSelectState);
 typedef OperationCallBack = Function(
     String id, BuildContext context, String oprationType);
 
-class ExampleSource extends AdvancedDataTableSource<ExamProfileModal> {
+class ExampleSource extends AdvancedDataTableSource<ExamSubjectModal> {
   static List<String> selectedIds = [];
   String lastSearchTerm = '';
   String classId = '';
@@ -849,16 +856,16 @@ class ExampleSource extends AdvancedDataTableSource<ExamProfileModal> {
     setNextView();
   }
 
-  Future<RemoteDataSourceDetails<ExamProfileModal>> getNextPage(NextPageRequest pageRequest) async {
+  Future<RemoteDataSourceDetails<ExamSubjectModal>> getNextPage(NextPageRequest pageRequest) async {
 
     final response = await apiService2.getSubjectList();
     final data = jsonDecode(response.body);
     print("okk");
     print(data);
-    final List<ExamProfileModal> paginatedData = (data['rows'] as List<dynamic>)
-        .map((json) => ExamProfileModal.fromJson(json as Map<String, dynamic>))
+    final List<ExamSubjectModal> paginatedData = (data['rows'] as List<dynamic>)
+        .map((json) => ExamSubjectModal.fromJson(json as Map<String, dynamic>))
         .toList();
-    final List<ExamProfileModal> paginatedList = paginatedData
+    final List<ExamSubjectModal> paginatedList = paginatedData
         .skip(pageRequest.offset)
         .take(pageRequest.pageSize)
         .toList();
@@ -878,6 +885,6 @@ class FormData {
   Map<String, dynamic> toJson() => {
     "name": name,
     'examType': type,
-    "examSubjectDetails":examSubjectDetails
+    "subjectDetails":examSubjectDetails
   };
 }

@@ -5,8 +5,8 @@ class ExamProfileModal {
   final int id;
   final String subjectName;
   final String subjectType;
-  final String minimumNumber;
-  final String maximumNumber;
+  final int minimumNumber;
+  final int maximumNumber;
 
   const ExamProfileModal(
       this.id,
@@ -58,7 +58,7 @@ class ExamProfileModal {
             onPressed: () => {
               {operation(id.toString(), context, "DETAILS")}
             },
-            child: Text(minimumNumber),
+            child: Text(minimumNumber.toString()),
           );
         })),
         DataCell(Builder(builder: (context) {
@@ -66,54 +66,10 @@ class ExamProfileModal {
             onPressed: () => {
               {operation(id.toString(), context, "DETAILS")}
             },
-            child: Text(maximumNumber),
+            child: Text(maximumNumber.toString()),
           );
         })),
 
-        // DataCell(Builder(
-        //   builder: (context) {
-        //     return Row(
-        //       mainAxisSize: MainAxisSize.min,
-        //       children: [
-        //         SizedBox(
-        //           height: 20.0,
-        //           child: Padding(
-        //             padding: const EdgeInsets.only(right: kDefaultPadding / 2),
-        //             child: SizedBox(
-        //               height: 20.0,
-        //               child:
-        //               IconButton(
-        //                 icon: const Icon(Icons.edit),
-        //                 color: Colors.green,
-        //                 tooltip: 'Edit',
-        //                 onPressed: () => {
-        //                   {operation(id.toString(), context, "EDIT")}
-        //                 },
-        //               ),
-        //             ),
-        //           ),
-        //         ),
-        //         SizedBox(
-        //           height: 25.0,
-        //           child: Padding(
-        //             padding: const EdgeInsets.only(right: kDefaultPadding / 2),
-        //             child: SizedBox(
-        //               height: 25.0,
-        //               child: IconButton(
-        //                 icon: const Icon(Icons.delete),
-        //                 color: Colors.red,
-        //                 tooltip: 'Delete',
-        //                 onPressed: () => {
-        //                   {operation(id.toString(), context, "DELETE")}
-        //                 },
-        //               ),
-        //             ),
-        //           ),
-        //         ),
-        //       ],
-        //     );
-        //   },
-        // )),
       ],
       onSelectChanged: (newState) {
         callback(id.toString(), newState ?? false);
@@ -127,8 +83,8 @@ class ExamProfileModal {
         json['id'] != null ? json['id'] as int : 0,
         json['name'] != null ? json['name'] as String : "",
         json['subjectType'] != null ? json['subjectType'] as String : "",
-        json['minPassingMarks'] != null ? json['minPassingMarks'] as String : "",
-        json['maxMarks'] != null ? json['maxMarks'] as String : "");
+        json['minPassingMarks'] != null ? json['minPassingMarks'] as int : 0,
+        json['maxMarks'] != null ? json['maxMarks'] as int : 0);
   }
 
   Map<String, dynamic> toJson() {

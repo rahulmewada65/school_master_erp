@@ -16,6 +16,7 @@ import '../../../constants/dimens.dart';
 import '../../../generated/l10n.dart';
 import '../../../services/api_service.dart';
 import '../../../services/class_profile_api_service.dart';
+import '../../../services/exam_api_service.dart';
 import '../../../services/subject_api_service.dart';
 import '../../../theme/theme_extensions/app_data_table_theme.dart';
 import '../../../utils/app_focus_helper.dart';
@@ -48,10 +49,7 @@ class _ExamProfileScreenState extends State<ExamProfileScreen> {
   var _sortAsc = true;
   var _visible1 = true;
   final _visible2 = true;
-  final _visible3 = true;
-  var _visible4 = false;
-  var _visible5 = true;
-  var _visible6 = true;
+
 
   final _searchController1 = TextEditingController();
   final _searchController2 = TextEditingController();
@@ -68,9 +66,12 @@ class _ExamProfileScreenState extends State<ExamProfileScreen> {
   final _formKey3 = GlobalKey<FormBuilderState>();
   final ApiService apiService = ApiService();
   final ClassApiService _classApiService = ClassApiService();
+  final ExamApiService examApiService = ExamApiService();
+  final SubjectApiService subjectApiService = SubjectApiService();
   final ClassProfileApiService _classStudentApiService = ClassProfileApiService();
-  List classData = [];
-  List studentList = [];
+
+
+  List subjectList = [];
   List<String> selectedIds2 = [];
   List<bool> selectedRowsTable1 = [];
   List<bool> selectedRowsTable2 = [];
@@ -83,7 +84,6 @@ class _ExamProfileScreenState extends State<ExamProfileScreen> {
     _searchController2.text = '';
     _searchController3.text = '';
     _source = ExampleSource(widget.id);
-
     _getDataAsync();
 
   }
@@ -100,31 +100,16 @@ class _ExamProfileScreenState extends State<ExamProfileScreen> {
   }
 
   Future<bool> _getDataAsync() async {
-    Future<Response> response1 = getClassDetails();
-    Future<Response> response2 = getClassStudentDetails();
+    Future<Response> response = getExamDetails();
     if (widget.id.isNotEmpty) {
       await Future.delayed(const Duration(seconds: 1), () {
-        response2.then((value) async => {
-          if (jsonDecode(value.body)['stClass'] != null)
-            {
-              setState(() {
-                classData = jsonDecode("[${value.body}]");
-                studentList = jsonDecode("[${value.body}]")[0]["assignStudents"];
-                selectedRowsTable1 = List.generate(jsonDecode("[${value.body}]")[0]["assignStudents"].length, (index) => false);
-              }),
-            }
-          else
-            {
-              await Future.delayed(const Duration(seconds: 1), () {
-                response1.then((value2) => {
-                  setState(() {
-                    classData = jsonDecode("[${value2.body}]");
-                    studentList = jsonDecode("[${value.body}]")[0]["assignStudents"];
-                    selectedRowsTable1 = List.generate(jsonDecode("[${value.body}]")[0]["assignStudents"].length, (index) => false);
-                  }),
-                });
+        response.then((value) async => {
+          if ( jsonDecode(value.body)["examSubjectDetails"].length>0){
+            setState(() {
+              subjectList = jsonDecode(value.body)["examSubjectDetails"];
+              selectedRowsTable1 = List.generate(jsonDecode(value.body)["examSubjectDetails"].length, (index) => false);
               })
-            }
+          }
         });
       });
     } else {}
@@ -132,25 +117,55 @@ class _ExamProfileScreenState extends State<ExamProfileScreen> {
     return true;
   }
 
-  assignStudent() {
-    var id = widget.id;
-    setState(() {
-      classData =[];
-      studentList = [];
-    });
-    var localData = {
-      "classId": id,
-      "assignStudents": ExampleSource.selectedIds
-    };
-    final response = _classStudentApiService.assignStudentInClass(localData);
-    Navigator.pop(context);
+  assignsubject() async {
+    var examId = widget.id;
+   var selectedIds = ExampleSource.selectedIds;
+    var response1 = await subjectApiService.getSubjectList();
+    var response2 = await examApiService.getExamById(examId);
+    final data1 = jsonDecode(response1.body)["rows"];
+    final data2 = jsonDecode(response2.body).cast<String, dynamic>();
+
+    List<dynamic> filteredData = data1
+        .where((item) => selectedIds.contains(item["id"].toString()))
+        .map((item) => {
+      "name": item["name"],
+      "subjectType": item["subjectType"],
+      "minPassingMarks": item["minPassingMarks"],
+      "maxMarks": item["maxMarks"],
+      "subjectId": item["id"],
+    })
+        .toList();
+
+    List<dynamic> transformedData = [
+      {
+        "id":examId,
+        "name": data2["name"],
+        "examType": data2["examType"],
+        "subjectDetails": [
+          ...(data2["examSubjectDetails"] as List<dynamic>?)?.map((item) => {
+            "name": item?["subject"]?["name"],
+            "subjectType": item?["subject"]?["subjectType"],
+            "minPassingMarks": item?["subject"]?["minPassingMarks"],
+            "maxMarks": item?["subject"]?["maxMarks"],
+            "subjectId": item?["subject"]?["id"],
+          })?.toList() ?? [],
+          ...filteredData,
+        ],
+      }
+    ];
+
+     var res = await examApiService.addExamApi(transformedData[0]);
+     var statusCode = res?.statusCode;
+     GoRouter.of(context).go('${RouteUri.exam_profile}?id=$examId');
     _getDataAsync();
+    Navigator.pop(context);
+   // _getDataAsync();
     //  .then((value) => GoRouter.of(context).go('${RouteUri.class_profile}?id=$id'));
-    GoRouter.of(context).go('${RouteUri.class_profile}?id=$id');
+    //GoRouter.of(context).go('${RouteUri.class_profile}?id=$id');
   }
 
-  Future<Response> getClassDetails() async {
-    var response = _classApiService.getClassById(widget.id);
+  Future<Response> getExamDetails() async {
+    var response = examApiService.getExamById(widget.id);
     return response;
   }
 
@@ -323,7 +338,8 @@ class _ExamProfileScreenState extends State<ExamProfileScreen> {
                                               icon: const Icon(
                                                   Icons.add_circle_outline),
                                               tooltip: 'Add New Student',
-                                              onPressed: () => assignStudent()),
+                                              onPressed: () => assignsubject()),
+
                                         ),
                                       ),
                                     ),
@@ -562,8 +578,8 @@ class _ExamProfileScreenState extends State<ExamProfileScreen> {
     final lang = Lang.of(context);
     final themeData = Theme.of(context);
     final appDataTableTheme = themeData.extension<AppDataTableTheme>()!;
-
     return PortalMasterLayout(
+      selectedMenuUri: RouteUri.exam_screen,
       body: ListView(
         padding: const EdgeInsets.all(kDefaultPadding),
         children: [
@@ -799,12 +815,12 @@ class _ExamProfileScreenState extends State<ExamProfileScreen> {
                                                     child: DataTable(
                                                       showCheckboxColumn: true,
                                                       showBottomBorder: true,
-                                                      onSelectAll: (newValue) {
-                                                        setState(() {
-                                                          selectedRowsTable1 = List.generate(
-                                                              selectedRowsTable1.length, (index) => newValue ?? false);
-                                                        });
-                                                      },
+                                                      // onSelectAll: (newValue) {
+                                                      //   setState(() {
+                                                      //     selectedRowsTable1 = List.generate(
+                                                      //         selectedRowsTable1.length, (index) => newValue ?? false);
+                                                      //   });
+                                                      // },
                                                       columns:  const [
                                                         DataColumn(
                                                           label: Text('No.'),
@@ -827,23 +843,22 @@ class _ExamProfileScreenState extends State<ExamProfileScreen> {
                                                         ),
                                                       ],
                                                       rows: List.generate(
-                                                          studentList.isNotEmpty ? studentList.length
+                                                          subjectList.isNotEmpty ? subjectList.length
                                                               : 0, (index) {
                                                         return DataRow.byIndex(
                                                           index: index,
-                                                          selected: selectedRowsTable1[index],
-                                                          onSelectChanged: (newValue) {
-                                                            setState(() {
-                                                              selectedRowsTable1[index] = newValue ?? false;
-                                                            });
-                                                          },
+                                                          //selected: selectedRowsTable1[index],
+                                                          // onSelectChanged: (newValue) {
+                                                          //   setState(() {
+                                                          //     selectedRowsTable1[index] = newValue ?? false;
+                                                          //   });
+                                                          // },
                                                           cells: [
-
                                                             DataCell(Text('#${index + 1}')),
-                                                            DataCell(Text(studentList.isNotEmpty ? studentList[index]["rollNumber"] : 0)),
-                                                            DataCell(Text(studentList.isNotEmpty ? studentList[index]["firstName"] : '')),
-                                                            DataCell(Text(studentList.isNotEmpty ? studentList[index]["firstName"] : '')),
-                                                            DataCell(Text(studentList.isNotEmpty ? studentList[index]["fatherName"] : '')),
+                                                            DataCell(Text(subjectList.isNotEmpty ? subjectList[index]["subject"]["name"] : 0)),
+                                                            DataCell(Text(subjectList.isNotEmpty ? subjectList[index]["subject"]["subjectType"] : '')),
+                                                            DataCell(Text(subjectList.isNotEmpty ? subjectList[index]["subject"]["minPassingMarks"].toString() : '')),
+                                                            DataCell(Text(subjectList.isNotEmpty ? subjectList[index]["subject"]["maxMarks"].toString()  : '')),
                                                             DataCell(Builder(
                                                               builder: (context) {
                                                                 return Row(
@@ -888,360 +903,6 @@ class _ExamProfileScreenState extends State<ExamProfileScreen> {
                   ),
                 ),
               )),
-          // Visibility(
-          //     visible: _visible3,
-          //     child: Padding(
-          //       padding: const EdgeInsets.symmetric(vertical: kDefaultPadding),
-          //       child: Card(
-          //         clipBehavior: Clip.antiAlias,
-          //         child: Column(
-          //           crossAxisAlignment: CrossAxisAlignment.start,
-          //           children: [
-          //             SizedBox(
-          //                 height: 60,
-          //                 child: Padding(
-          //                   padding: const EdgeInsets.all(kDefaultPadding),
-          //                   child: Row(
-          //                       mainAxisAlignment:
-          //                       MainAxisAlignment.spaceBetween,
-          //                       children: [
-          //                         const Text('SUBJECT LIST'),
-          //                         TextButton(
-          //                           onPressed: () {
-          //                             setState(() {
-          //                               _visible4 = !_visible4;
-          //                             });
-          //                           },
-          //                           //  style: appColorScheme.,
-          //                           child: Row(
-          //                             mainAxisSize: MainAxisSize.min,
-          //                             children: const [
-          //                               Padding(
-          //                                 padding: EdgeInsets.only(
-          //                                     right: kTextPadding),
-          //                                 child: Icon(
-          //                                   Icons.arrow_drop_down,
-          //                                   size: 25,
-          //                                 ),
-          //                               ),
-          //                               //  Text('Save'),
-          //                             ],
-          //                           ),
-          //                         ),
-          //                       ]),
-          //                 )),
-          //             // const CardHeader(
-          //             //   title: 'STUDENT LIST',
-          //             // ),
-          //             Visibility(
-          //                 visible: _visible4,
-          //                 child: Column(children: [
-          //                   const Divider(),
-          //                   CardBody(
-          //                     child: Column(
-          //                       crossAxisAlignment: CrossAxisAlignment.start,
-          //                       children: [
-          //                         Padding(
-          //                           padding: const EdgeInsets.only(
-          //                               bottom: kDefaultPadding * 1.0),
-          //                           child: FormBuilder(
-          //                             key: _formKey2,
-          //                             autovalidateMode:
-          //                             AutovalidateMode.disabled,
-          //                             child: SizedBox(
-          //                               width: double.infinity,
-          //                               child: Wrap(
-          //                                 direction: Axis.horizontal,
-          //                                 spacing: kDefaultPadding,
-          //                                 runSpacing: kDefaultPadding,
-          //                                 alignment: WrapAlignment.spaceBetween,
-          //                                 crossAxisAlignment:
-          //                                 WrapCrossAlignment.center,
-          //                                 children: [
-          //                                   SizedBox(
-          //                                     width: 300.0,
-          //                                     child: Padding(
-          //                                       padding: const EdgeInsets.only(
-          //                                           right:
-          //                                           kDefaultPadding * 1.5),
-          //                                       child: FormBuilderTextField(
-          //                                         controller: _searchController2,
-          //                                         name: 'search',
-          //                                         decoration: InputDecoration(
-          //                                           labelText: lang.search,
-          //                                           hintText: lang.search,
-          //                                           border:
-          //                                           const OutlineInputBorder(),
-          //                                           floatingLabelBehavior:
-          //                                           FloatingLabelBehavior
-          //                                               .always,
-          //                                           isDense: true,
-          //                                         ),
-          //                                         onSubmitted: (value) {
-          //                                           _source.filterServerSide(
-          //                                               _searchController2.text);
-          //                                         },
-          //                                       ),
-          //                                     ),
-          //                                   ),
-          //                                   Row(
-          //                                     mainAxisSize: MainAxisSize.min,
-          //                                     children: [
-          //                                       SizedBox(
-          //                                         height: 40.0,
-          //                                         child: Padding(
-          //                                           padding: const EdgeInsets
-          //                                               .only(
-          //                                               right: kDefaultPadding),
-          //                                           child: SizedBox(
-          //                                             height: 40.0,
-          //                                             child: IconButton(
-          //                                               icon: const Icon(
-          //                                                   Icons.search),
-          //                                               tooltip: 'Search',
-          //                                               onPressed: () {
-          //                                                 // print(_source
-          //                                                 //     .selectedIds);
-          //                                                 setState(() {
-          //                                                   _searchController2
-          //                                                       .text = '';
-          //                                                 });
-          //                                                 _source.filterServerSide(
-          //                                                     _searchController2
-          //                                                         .text);
-          //                                               },
-          //                                             ),
-          //                                           ),
-          //                                         ),
-          //                                       ),
-          //                                       SizedBox(
-          //                                         height: 40.0,
-          //                                         child: Padding(
-          //                                           padding: const EdgeInsets
-          //                                               .only(
-          //                                               right: kDefaultPadding),
-          //                                           child: SizedBox(
-          //                                             height: 40.0,
-          //                                             child: IconButton(
-          //                                                 color: Colors.green,
-          //                                                 icon: const Icon(
-          //                                                     Icons.download),
-          //                                                 tooltip:
-          //                                                 'Import List',
-          //                                                 onPressed: () => {
-          //                                                   showOptionsDialog(
-          //                                                       context)
-          //                                                 }
-          //                                               // GoRouter.of(context)
-          //                                               //     .go(RouteUri
-          //                                               //         .form),
-          //                                             ),
-          //                                           ),
-          //                                         ),
-          //                                       ),
-          //                                       SizedBox(
-          //                                         height: 40.0,
-          //                                         child: Padding(
-          //                                           padding: const EdgeInsets
-          //                                               .only(
-          //                                               right: kDefaultPadding),
-          //                                           child: SizedBox(
-          //                                             height: 40.0,
-          //                                             child: IconButton(
-          //                                                 color: Colors.red,
-          //                                                 icon: const Icon(
-          //                                                     Icons.delete),
-          //                                                 tooltip:
-          //                                                 'Delete Selected',
-          //                                                 onPressed: () => {}
-          //                                               //GoRouter.of(context).go(RouteUri.crudDetail),
-          //                                             ),
-          //                                           ),
-          //                                         ),
-          //                                       ),
-          //                                       SizedBox(
-          //                                         height: 40.0,
-          //                                         child: Padding(
-          //                                           padding: const EdgeInsets
-          //                                               .only(
-          //                                               right: kDefaultPadding),
-          //                                           child: SizedBox(
-          //                                             height: 40.0,
-          //                                             child: IconButton(
-          //                                               color:
-          //                                               Colors.blueAccent,
-          //                                               icon: const Icon(Icons
-          //                                                   .add_circle_outline),
-          //                                               tooltip:
-          //                                               'Add New Student',
-          //                                               onPressed: () =>
-          //                                                   GoRouter.of(context)
-          //                                                       .go(RouteUri
-          //                                                       .form),
-          //                                             ),
-          //                                           ),
-          //                                         ),
-          //                                       ),
-          //                                     ],
-          //                                   ),
-          //                                 ],
-          //                               ),
-          //                             ),
-          //                           ),
-          //                         ),
-          //                         SizedBox(
-          //                           width: double.infinity,
-          //                           child: LayoutBuilder(
-          //                             builder: (context, constraints) {
-          //                               final double dataTableWidth = max(
-          //                                   kScreenWidthMd,
-          //                                   constraints.maxWidth);
-          //
-          //                               return  SingleChildScrollView(
-          //                                 controller: _scrollController3,
-          //                                 scrollDirection: Axis.horizontal,
-          //                                 child: SingleChildScrollView(
-          //                                   scrollDirection: Axis.horizontal,
-          //                                   controller: _scrollController6,
-          //                                   child: SizedBox(
-          //                                     width: dataTableWidth,
-          //                                     child: Theme(
-          //                                       data: themeData.copyWith(
-          //                                         cardTheme: appDataTableTheme
-          //                                             .cardTheme,
-          //                                         dataTableTheme:
-          //                                         appDataTableTheme
-          //                                             .dataTableThemeData,
-          //                                       ),
-          //                                       child: DataTable(
-          //                                         showCheckboxColumn: true,
-          //                                         showBottomBorder: true,
-          //                                         columns: [
-          //                                           DataColumn(
-          //                                               label: IconButton(
-          //                                                 icon: Icon(_visible5
-          //                                                     ? Icons
-          //                                                     .check_box_outline_blank_sharp
-          //                                                     : Icons
-          //                                                     .check_box_sharp),
-          //                                                 color: _visible5
-          //                                                     ? Colors.white
-          //                                                     : Colors.cyanAccent,
-          //                                                 tooltip: 'Select All',
-          //                                                 onPressed: () => {
-          //                                                   setState(() {
-          //                                                     _visible5 =
-          //                                                     !_visible5;
-          //                                                   })
-          //                                                 },
-          //                                                 // {operation(id.toString(), context, "EDIT")}
-          //                                               )),
-          //                                           const DataColumn(
-          //                                             label: Text('No.'),
-          //                                           ),
-          //                                           const DataColumn(
-          //                                               label: Text(
-          //                                                   'Subject Name')),
-          //                                           const DataColumn(
-          //                                               label: Text(
-          //                                                   'Subject Type')),
-          //                                           const DataColumn(
-          //                                             label: Text('Action'),
-          //                                           ),
-          //                                         ],
-          //                                         rows: List.generate(
-          //                                             classData.isNotEmpty
-          //                                                 ? classData[0]["stClass"]!= null ?classData[0]["stClass"]
-          //                                             ["subject"]
-          //                                                 .length:0
-          //                                                 : 0, (index) {
-          //                                           return DataRow.byIndex(
-          //                                             index: index,
-          //                                             cells: [
-          //                                               DataCell(
-          //
-          //
-          //
-          //                                                 FormBuilderCheckbox(
-          //                                                   name:
-          //                                                   'accept_terms',
-          //                                                   initialValue: false,
-          //                                                   onChanged:
-          //                                                       (value) {},
-          //                                                   title: RichText(
-          //                                                     text: TextSpan(
-          //                                                       children: [
-          //                                                         TextSpan(
-          //                                                           text: '',
-          //                                                           style:
-          //                                                           TextStyle(
-          //                                                             color: themeData
-          //                                                                 .colorScheme
-          //                                                                 .onSurface,
-          //                                                           ),
-          //                                                         ),
-          //                                                         const TextSpan(
-          //                                                           text: '',
-          //                                                           style: TextStyle(
-          //                                                               color: Colors
-          //                                                                   .blue),
-          //                                                         ),
-          //                                                       ],
-          //                                                     ),
-          //                                                   ),
-          //                                                 ),
-          //                                               ),
-          //                                               DataCell(Text(
-          //                                                   '#${index + 1}')),
-          //                                               DataCell(Text(
-          //                                                   "${classData.isNotEmpty ? classData[0]['stClass']!= null ?classData[0]['stClass']["subject"][index]["name"] :"": ''}")),
-          //                                               DataCell(Text(
-          //                                                   "${classData.isNotEmpty ? classData[0]['stClass']!= null ?classData[0]['stClass']["subject"][index]["subjectType"]:"" : ''}")),
-          //                                               DataCell(Builder(
-          //                                                 builder: (context) {
-          //                                                   return Row(
-          //                                                     mainAxisSize: MainAxisSize.min,
-          //                                                     children: [
-          //                                                       SizedBox(
-          //                                                         height: 28.0,
-          //                                                         child: Padding(
-          //                                                           padding: const EdgeInsets.only(right: kDefaultPadding / 2),
-          //                                                           child: SizedBox(
-          //                                                             height: 25.0,
-          //                                                             child: IconButton(
-          //                                                               icon: const Icon(Icons.delete),
-          //                                                               color: Colors.red,
-          //                                                               tooltip: 'Delete',
-          //                                                               onPressed: () => {
-          //
-          //                                                               },
-          //                                                             ),
-          //                                                           ),
-          //                                                         ),
-          //                                                       ),
-          //                                                     ],
-          //                                                   );
-          //                                                 },
-          //                                               )),
-          //                                             ],
-          //                                           );
-          //                                         }),
-          //                                       ),
-          //                                     ),
-          //                                   ),
-          //                                 ),
-          //                               );
-          //                             },
-          //                           ),
-          //                         ),
-          //                       ],
-          //                     ),
-          //                   ),
-          //                 ]))
-          //           ],
-          //         ),
-          //       ),
-          //     )),
         ],
       ),
     );
@@ -1264,15 +925,13 @@ typedef OperationCallBack = Function(
 class ExampleSource extends AdvancedDataTableSource<ExamProfileModal> {
   static List<String> selectedIds = [];
   String lastSearchTerm = '';
-  String classId = '';
+  String examId = '';
   ExampleSource(String id) {
-    classId = id;
+    examId = id;
   }
 
-  final storage = const FlutterSecureStorage();
-  ApiService apiService = ApiService();
-   SubjectApiService apiService2 = SubjectApiService();
-
+  final ExamApiService examApiService = ExamApiService();
+  final SubjectApiService apiService = SubjectApiService();
   @override
   DataRow? getRow(int index) =>
       lastDetails!.rows[index].getRow(selectedRow, selectedIds, doOperations);
@@ -1326,10 +985,7 @@ class ExampleSource extends AdvancedDataTableSource<ExamProfileModal> {
       AndroidOptions getAndroidOptions() => const AndroidOptions(
         encryptedSharedPreferences: true,
       );
-      await storage.write(
-          key: "student_id", value: id, aOptions: getAndroidOptions()
-        //iOptions: _getIOSOptions(),
-      );
+
       GoRouter.of(context).go('${RouteUri.form}?id=$id');
       // print('EDIT');
     }
@@ -1348,29 +1004,44 @@ class ExampleSource extends AdvancedDataTableSource<ExamProfileModal> {
     setNextView();
   }
 
+  @override
   Future<RemoteDataSourceDetails<ExamProfileModal>> getNextPage(NextPageRequest pageRequest) async {
-    final queryParameter = <String, dynamic>{
-      'offset': pageRequest.offset.toString(),
-      'pageSize': pageRequest.pageSize.toString(),
-      'sortIndex': ((pageRequest.columnSortIndex ?? 0) + 1).toString(),
-      'sortAsc': ((pageRequest.sortAscending ?? true) ? 1 : 0).toString(),
-      if (lastSearchTerm.isNotEmpty) 'companyFilter': lastSearchTerm,
-    };
-     final response = await apiService2.getSubjectList();
-    final data = jsonDecode(response.body);
-    //print(data);
-    final List<ExamProfileModal> paginatedData = (data['rows'] as List<dynamic>)
-        .map((json) => ExamProfileModal.fromJson(json as Map<String, dynamic>))
-        .toList();
-    final List<ExamProfileModal> paginatedList = paginatedData
-        .skip(pageRequest.offset)
-        .take(pageRequest.pageSize)
-        .toList();
-    return RemoteDataSourceDetails(
-      int.parse(data['totalRows'].toString()),
-      paginatedList,
-      filteredRows: lastSearchTerm.isNotEmpty ? paginatedData.length : null,
-    );
+    try {
+      final queryParameter = <String, dynamic>{
+        'offset': pageRequest.offset.toString(),
+        'pageSize': pageRequest.pageSize.toString(),
+        'sortIndex': ((pageRequest.columnSortIndex ?? 0) + 1).toString(),
+        'sortAsc': ((pageRequest.sortAscending ?? true) ? 1 : 0).toString(),
+        if (lastSearchTerm.isNotEmpty) 'companyFilter': lastSearchTerm,
+      };
+      var response = await examApiService.getExamById(examId);
+      var response2 = await apiService.getSubjectList();
+      final data = jsonDecode(response.body).cast<String, dynamic>();
+      final data1 = jsonDecode(response2.body)["rows"];
+      List<Map<String, dynamic>> data2 = (data['examSubjectDetails'] as List)
+          .map((item) => (item['subject'] as Map<String, dynamic>).cast<String, dynamic>())
+          .toList();
+      Set<int> idsInData2 = Set.from(data2.map((item) => item["id"]));
+      List<dynamic> result = data1.where((item1) => !idsInData2.contains(item1["id"])).toList();
+      var length = result.length;
+      final List<ExamProfileModal> paginatedData = result
+          .map((json) => ExamProfileModal.fromJson(json))
+          .toList();
+      final List<ExamProfileModal> paginatedList = paginatedData
+          .skip(pageRequest.offset)
+          .take(pageRequest.pageSize)
+          .toList();
+
+      return RemoteDataSourceDetails(
+        int.parse(length.toString()),
+        paginatedList,
+        filteredRows: lastSearchTerm.isNotEmpty ? paginatedData.length : null,
+      );
+    } catch (e) {
+      // Handle exceptions or errors here
+      print("Error in getNextPage: $e");
+      return RemoteDataSourceDetails(0, []);
+    }
   }
 
 }
