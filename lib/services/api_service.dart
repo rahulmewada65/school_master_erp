@@ -72,6 +72,8 @@ class ApiService {
       'Authorization': 'Bearer $tokan'
     };
     var userUrl = Uri.parse('${studentUrl}save');
+    print(userUrl);
+    print(jsonEncode(formData));
     var res = await post(
       userUrl,
       body: jsonEncode(formData),

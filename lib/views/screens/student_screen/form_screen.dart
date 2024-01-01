@@ -6,8 +6,10 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 //import 'package:form_builder_asset_picker/form_builder_asset_picker.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:go_router/go_router.dart';
 import 'package:http/http.dart';
 import 'package:intl/intl.dart';
+import '../../../app_router.dart';
 import '../../../constants/dimens.dart';
 import '../../../generated/l10n.dart';
 import '../../../services/api_service.dart';
@@ -94,7 +96,7 @@ class _FormScreenState extends State<FormScreen> {
       title: 'SUCCESS',
       desc: 'Student Data Success Save ...',
       width: kDialogWidth,
-      btnOkOnPress: () {},
+      btnOkOnPress: () {GoRouter.of(context).go(RouteUri.crud);},
       btnCancelOnPress: () {},
     );
 
@@ -815,8 +817,10 @@ class _FormScreenState extends State<FormScreen> {
                     // Validation passed.
                     _formKey.currentState!.save();
                     var res = await apiService.addStudent(_formData.toJson());
+                    print(res?.statusCode);
                     if (res?.statusCode == 201) {
                       _showDialog(context, DialogType.SUCCES);
+
                     }
                     //GoRouter.of(context).go(RouteUri.pdf-screen);
                   } else {
@@ -845,7 +849,7 @@ class FormData {
   String gender = '';
   String medium = '';
   String classes = '';
-  Object subject = {};
+  List subject = [];
   String dob = '';
   String mobileNumber = '';
   String mobileNumber2 = '';
@@ -853,6 +857,7 @@ class FormData {
   String bankName = '';
   String accountHolderName = '';
   String accountNumber = '';
+  List documents=[];
   String ifscCode = '';
   String address = '';
   Map<String, dynamic> toJson() => {
@@ -875,5 +880,6 @@ class FormData {
         'accountNumber': accountNumber,
         'ifscCode': ifscCode,
         'address': address,
+    'documents':documents
       };
 }
