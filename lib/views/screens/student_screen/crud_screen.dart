@@ -298,13 +298,13 @@ class _CrudScreenState extends State<CrudScreen> {
                                             label: const Text('First name'),
                                             onSort: setSort,
                                           ),
-                                          DataColumn(
-                                            label: const Text('Last name'),
-                                            onSort: setSort,
-                                          ),
-                                          const DataColumn(
-                                            label: Text('WhatsApp'),
-                                          ),
+                                          // DataColumn(
+                                          //   label: const Text('Last name'),
+                                          //   onSort: setSort,
+                                          // ),
+                                          // const DataColumn(
+                                          //   label: Text('WhatsApp'),
+                                          // ),
                                           DataColumn(
                                             label: const Text('Phone'),
                                             onSort: setSort,

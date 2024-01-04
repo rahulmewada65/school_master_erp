@@ -10,6 +10,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:school_master_erp/services/profile_service.dart';
@@ -160,6 +161,7 @@ class _StudentScreen extends State<StudentScreen> {
                                   height: 50,
                                   child: FormBuilderDateTimePicker(
                                     name: 'Date',
+                                    format:DateFormat("dd/MM/yyyy") ,
                                     onChanged: (value) => {
                                       sbmittedFeeData["date"] = value,
                                     },
@@ -217,7 +219,7 @@ class _StudentScreen extends State<StudentScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const Text("Disruption"),
+                            const Text("Description"),
                             SizedBox(
                                 width: (kDefaultPadding * 7),
                                 height: 50,
@@ -227,9 +229,9 @@ class _StudentScreen extends State<StudentScreen> {
                                       signed: true,
                                       decimal: true,
                                     ),
-                                    name: 'Disruption',
+                                    name: 'Description',
                                     decoration: const InputDecoration(
-                                      labelText: 'Disruption',
+                                      labelText: 'Description',
                                       border: UnderlineInputBorder(),
                                       // floatingLabelBehavior: FloatingLabelBehavior.auto,
                                     ),
@@ -241,7 +243,7 @@ class _StudentScreen extends State<StudentScreen> {
                         ),
                       ),
                       const Divider(),
-                      const Text("Payment Mood"),
+                      const Text("Payment Mode"),
                       SizedBox(
                         width: (kDefaultPadding * 15),
                         child: FormBuilderFilterChip(
@@ -287,6 +289,7 @@ class _StudentScreen extends State<StudentScreen> {
                                   style: TextStyle(fontSize: 12),
                                 )),
                           ],
+
                           onChanged: (value) => {
                             sbmittedFeeData["paymentMode"] = value,
                           },
@@ -621,7 +624,7 @@ class _StudentScreen extends State<StudentScreen> {
                                 height: 15,
                               ),
                               pw.Text(
-                                "Student Name      :   ${_formData.student_name}",
+                                "Student Name        :   ${_formData.student_name}",
                               ),
                               pw.SizedBox(
                                 height: 15,
@@ -1380,275 +1383,609 @@ class _StudentScreen extends State<StudentScreen> {
 
     dialog.show();
   }
-
+int selectedButtonIndex = -1;
   @override
   Widget build(BuildContext context) {
     // final lang = Lang.of(context);
     final themeData = Theme.of(context);
     final appButtonTheme = themeData.extension<AppButtonTheme>()!;
-    return PortalMasterLayout(
-      selectedMenuUri: RouteUri.crud,
-      body: Stepper(
-        type: stepperType,
-        controlsBuilder: (context, _) {
-          return Card(
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+    ButtonStyle buttonStyle = const ButtonStyle();
+    return
+      PortalMasterLayout(
+          selectedMenuUri: RouteUri.crud,
+          body:
+
+          Column(
+              mainAxisAlignment: MainAxisAlignment.start, // <-- Set MainAxisAlignment.start
               children: [
-                CardBody(
-                    child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
-                    TextButton(
-                      onPressed: () {
-                        back();
-                      },
-                      style: appButtonTheme.infoText,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Padding(
-                            padding: EdgeInsets.only(right: kTextPadding),
-                            child: Icon(Icons.arrow_back_ios_outlined),
-                          ),
-                          Text('Back'),
-                        ],
-                      ),
-                    ),
-                    TextButton(
-                      onPressed: () {
-                        next();
-                      },
-                      style: appButtonTheme.infoText,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Text('Next'),
-                          Padding(
-                            padding: EdgeInsets.only(right: kTextPadding),
-                            child: Icon(Icons.arrow_forward_ios_outlined),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ))
-              ],
-            ),
-          );
-        },
-        physics: const ScrollPhysics(),
-        currentStep: _currentStep,
-        onStepTapped: (step) => tapped(step),
-        onStepContinue: next,
-        onStepCancel: back,
-        steps: <Step>[
-          Step(
-              title: const Text(''),
-              subtitle: const Text(''),
-              label: const Text("Student Profile"),
-              content: Column(
-                children: <Widget>[
-                  // Text(
-                  //  "Student Profile",
-                  //   style: themeData.textTheme.headline4,
-                  // ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: kDefaultPadding),
-                    child: Card(
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // CardHeader(
-                          //   title: _formData.student_name,
-                          // ),
-                          CardBody(
-                            child: FutureBuilder<bool>(
-                              initialData: null,
-                              future: (_future ??= _getDataAsync()),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  if (snapshot.hasData && snapshot.data!) {
-                                    return _content(context);
-                                  }
-                                } else if (snapshot.hasData && snapshot.data!) {
-                                  return _content(context);
-                                }
+                Card(
+                        clipBehavior: Clip.antiAlias,
+                        child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
 
-                                return Container(
-                                  alignment: Alignment.center,
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: kDefaultPadding),
-                                  child: SizedBox(
-                                    height: 40.0,
-                                    width: 40.0,
-                                    child: CircularProgressIndicator(
-                                      backgroundColor:
-                                          themeData.scaffoldBackgroundColor,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              isActive: _currentStep >= 0,
-              state: StepState.complete),
-          Step(
-              title: const Text(''),
-              subtitle: const Text(''),
-              label: const Text("Fees Details"),
-              content: Column(
-                children: <Widget>[
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: kDefaultPadding),
-                    child: FutureBuilder<bool>(
-                      initialData: null,
-                      future: (_future2 ??= _getDataAsync2()),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          if (snapshot.hasData && snapshot.data!) {
-                            return _content2(context);
-                          }
-                        } else if (snapshot.hasData && snapshot.data!) {
-                          return _content2(context);
-                        }
-
-                        return Container(
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: kDefaultPadding),
-                          child: SizedBox(
-                            height: 40.0,
-                            width: 40.0,
-                            child: CircularProgressIndicator(
-                              backgroundColor:
-                                  themeData.scaffoldBackgroundColor,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              isActive: _currentStep >= 0,
-              state: StepState.complete),
-          Step(
-              title: const Text(''),
-              label: const Text("Fees Details"),
-              content: Padding(
-                padding: const EdgeInsets.symmetric(vertical: kDefaultPadding),
-                child: Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const CardHeader(
-                        title: "Fees Details",
-                      ),
-                      for (int i = 0; i < 3; i++)
-                        CardBody(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const <Widget>[
-                              Divider(),
-                              CardHeader(
-                                title: "Session  : 2021-2022",
-                              ),
-                              ListTile(
-                                leading: Icon(Icons.album,
-                                    color: Colors.cyan, size: 45),
-                                title: Text(
-                                  "Let's Talk About Love",
-                                  style: TextStyle(fontSize: 20),
-                                ),
-                                subtitle: Text('Modern Talking Album'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      const Divider(),
-                      Align(
-                        alignment: Alignment.center,
-                        child: Padding(
-                          padding: const EdgeInsets.all(kDefaultPadding),
-                          child: SizedBox(
-                            height: 40.0,
-                            width: 120.0,
-                            child: TextButton(
-                              onPressed: () {
-                                _printScreen();
-                              },
-                              style: appButtonTheme.infoText,
+                            CardBody(
                               child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Padding(
-                                    padding:
-                                        EdgeInsets.only(right: kTextPadding),
-                                    child: Icon(Icons.print_rounded),
-                                  ),
-                                  Text('Print'),
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  for (int index = 0; index < 5; index++)
+                                    OutlinedButton(
+                                      onPressed: () {
+                                        setState(() {
+                                          selectedButtonIndex = index;
+                                        });
+                                      },
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children:  [
+                                          selectedButtonIndex == index ?
+                                          const Padding(
+                                            padding: EdgeInsets.only(right: kTextPadding),
+                                            child:  Icon(Icons.account_circle_rounded),
+                                          )
+                                          :
+                                          const Padding(
+                                            padding: EdgeInsets.only(right: kTextPadding),
+                                            child:  Icon(Icons.access_alarm),
+                                          ),
+                                          Text('button $index'),
+                                        ],
+                                      ),
+                                    ),
+
+
                                 ],
                               ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              isActive: _currentStep >= 0,
-              state: StepState.complete),
-          Step(
-              title: const Text(''),
-              content: Padding(
-                padding: const EdgeInsets.symmetric(vertical: kDefaultPadding),
-                child: Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const CardHeader(
-                        title: "Address Details",
-                      ),
-                      CardBody(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const <Widget>[
-                            ListTile(
-                              leading: Icon(Icons.album,
-                                  color: Colors.cyan, size: 45),
-                              title: Text(
-                                "Let's Talk About Love",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              subtitle: Text('Modern Talking Album'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              isActive: _currentStep >= 0,
-              state: StepState.complete),
-        ],
-      ),
+
+
+
+
+
+                          // Stepper(
+                          //   type: stepperType,
+                          //   controlsBuilder: (context, _) {
+                          //     return
+                          //       Card(
+                          //       clipBehavior: Clip.antiAlias,
+                          //       child: Column(
+                          //         crossAxisAlignment: CrossAxisAlignment.start,
+                          //         children: [
+                          //           CardBody(
+                          //               child: Row(
+                          //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          //             children: <Widget>[
+                          //               TextButton(
+                          //                 onPressed: () {
+                          //                   back();
+                          //                 },
+                          //                 style: appButtonTheme.infoText,
+                          //                 child: Row(
+                          //                   mainAxisSize: MainAxisSize.min,
+                          //                   children: const [
+                          //                     Padding(
+                          //                       padding: EdgeInsets.only(right: kTextPadding),
+                          //                       child: Icon(Icons.arrow_back_ios_outlined),
+                          //                     ),
+                          //                     Text('Back'),
+                          //                   ],
+                          //                 ),
+                          //               ),
+                          //               TextButton(
+                          //                 onPressed: () {
+                          //                   next();
+                          //                 },
+                          //                 style: appButtonTheme.infoText,
+                          //                 child: Row(
+                          //                   mainAxisSize: MainAxisSize.min,
+                          //                   children: const [
+                          //                     Text('Next'),
+                          //                     Padding(
+                          //                       padding: EdgeInsets.only(right: kTextPadding),
+                          //                       child: Icon(Icons.arrow_forward_ios_outlined),
+                          //                     ),
+                          //                   ],
+                          //                 ),
+                          //               ),
+                          //             ],
+                          //           ))
+                          //         ],
+                          //       ),
+                          //     );
+                          //   },
+                          //   physics: const ScrollPhysics(),
+                          //   currentStep: _currentStep,
+                          //   onStepTapped: (step) => tapped(step),
+                          //   onStepContinue: next,
+                          //   onStepCancel: back,
+                          //   steps: <Step>[
+                          //     Step(
+                          //         title: const Text(''),
+                          //         subtitle: const Text(''),
+                          //         label: const Text("Student Profile"),
+                          //         content: Column(
+                          //           children: <Widget>[
+                          //             // Text(
+                          //             //  "Student Profile",
+                          //             //   style: themeData.textTheme.headline4,
+                          //             // ),
+                          //             Padding(
+                          //               padding:
+                          //                   const EdgeInsets.symmetric(vertical: kDefaultPadding),
+                          //               child: Card(
+                          //                 clipBehavior: Clip.antiAlias,
+                          //                 child: Column(
+                          //                   crossAxisAlignment: CrossAxisAlignment.start,
+                          //                   children: [
+                          //                     // CardHeader(
+                          //                     //   title: _formData.student_name,
+                          //                     // ),
+                          //                     CardBody(
+                          //                       child: FutureBuilder<bool>(
+                          //                         initialData: null,
+                          //                         future: (_future ??= _getDataAsync()),
+                          //                         builder: (context, snapshot) {
+                          //                           if (snapshot.connectionState ==
+                          //                               ConnectionState.waiting) {
+                          //                             if (snapshot.hasData && snapshot.data!) {
+                          //                               return _content(context);
+                          //                             }
+                          //                           } else if (snapshot.hasData && snapshot.data!) {
+                          //                             return _content(context);
+                          //                           }
+                          //
+                          //                           return Container(
+                          //                             alignment: Alignment.center,
+                          //                             padding: const EdgeInsets.symmetric(
+                          //                                 vertical: kDefaultPadding),
+                          //                             child: SizedBox(
+                          //                               height: 40.0,
+                          //                               width: 40.0,
+                          //                               child: CircularProgressIndicator(
+                          //                                 backgroundColor:
+                          //                                     themeData.scaffoldBackgroundColor,
+                          //                               ),
+                          //                             ),
+                          //                           );
+                          //                         },
+                          //                       ),
+                          //                     ),
+                          //                   ],
+                          //                 ),
+                          //               ),
+                          //             ),
+                          //           ],
+                          //         ),
+                          //         // isActive: _currentStep >= 0,
+                          //         // state: StepState.complete),
+                          //     isActive: _currentStep >= 0,
+                          //     state: _currentStep >= 1 ? StepState.complete : StepState.indexed),
+                          //     Step(
+                          //         title: const Text(''),
+                          //         subtitle: const Text(''),
+                          //         label: const Text("Fees Details"),
+                          //         content: Column(
+                          //           children: <Widget>[
+                          //             Padding(
+                          //               padding:
+                          //                   const EdgeInsets.symmetric(vertical: kDefaultPadding),
+                          //               child: FutureBuilder<bool>(
+                          //                 initialData: null,
+                          //                 future: (_future2 ??= _getDataAsync2()),
+                          //                 builder: (context, snapshot) {
+                          //                   if (snapshot.connectionState ==
+                          //                       ConnectionState.waiting) {
+                          //                     if (snapshot.hasData && snapshot.data!) {
+                          //                       return _content2(context);
+                          //                     }
+                          //                   } else if (snapshot.hasData && snapshot.data!) {
+                          //                     return _content2(context);
+                          //                   }
+                          //
+                          //                   return Container(
+                          //                     alignment: Alignment.center,
+                          //                     padding: const EdgeInsets.symmetric(
+                          //                         vertical: kDefaultPadding),
+                          //                     child: SizedBox(
+                          //                       height: 40.0,
+                          //                       width: 40.0,
+                          //                       child: CircularProgressIndicator(
+                          //                         backgroundColor:
+                          //                             themeData.scaffoldBackgroundColor,
+                          //                       ),
+                          //                     ),
+                          //                   );
+                          //                 },
+                          //               ),
+                          //             ),
+                          //           ],
+                          //         ),
+                          //         isActive: _currentStep >= 0,
+                          //         state: StepState.complete),
+                          //     Step(
+                          //         title: const Text(''),
+                          //         label: const Text("Academic History "),
+                          //         content: Padding(
+                          //           padding: const EdgeInsets.symmetric(vertical: kDefaultPadding),
+                          //           child: Card(
+                          //             clipBehavior: Clip.antiAlias,
+                          //             child: Column(
+                          //               crossAxisAlignment: CrossAxisAlignment.start,
+                          //               children: [
+                          //                 const CardHeader(
+                          //                   title: "Academic History",
+                          //                 ),
+                          //                 for (int i = 0; i < 3; i++)
+                          //                   CardBody(
+                          //                     child: Column(
+                          //                       mainAxisSize: MainAxisSize.min,
+                          //                       children: const <Widget>[
+                          //                         Divider(),
+                          //                         CardHeader(
+                          //                           title: "Session  : 2021-2022",
+                          //                         ),
+                          //                         ListTile(
+                          //                           leading: Icon(Icons.album,
+                          //                               color: Colors.cyan, size: 45),
+                          //                           title: Text(
+                          //                             "Let's Talk About Love",
+                          //                             style: TextStyle(fontSize: 20),
+                          //                           ),
+                          //                           subtitle: Text('Modern Talking Album'),
+                          //                         ),
+                          //                       ],
+                          //                     ),
+                          //                   ),
+                          //                 const Divider(),
+                          //                 Align(
+                          //                   alignment: Alignment.center,
+                          //                   child: Padding(
+                          //                     padding: const EdgeInsets.all(kDefaultPadding),
+                          //                     child: SizedBox(
+                          //                       height: 40.0,
+                          //                       width: 120.0,
+                          //                       child: TextButton(
+                          //                         onPressed: () {
+                          //                           _printScreen();
+                          //                         },
+                          //                         style: appButtonTheme.infoText,
+                          //                         child: Row(
+                          //                           mainAxisSize: MainAxisSize.min,
+                          //                           children: const [
+                          //                             Padding(
+                          //                               padding:
+                          //                                   EdgeInsets.only(right: kTextPadding),
+                          //                               child: Icon(Icons.print_rounded),
+                          //                             ),
+                          //                             Text('Print'),
+                          //                           ],
+                          //                         ),
+                          //                       ),
+                          //                     ),
+                          //                   ),
+                          //                 ),
+                          //               ],
+                          //             ),
+                          //           ),
+                          //         ),
+                          //         isActive: _currentStep >= 0,
+                          //         state: StepState.complete),
+                          //     Step(
+                          //         title: const Text(''),
+                          //         label: const Text("Student Document"),
+                          //         content: Padding(
+                          //           padding: const EdgeInsets.symmetric(vertical: kDefaultPadding),
+                          //           child: Card(
+                          //             clipBehavior: Clip.antiAlias,
+                          //             child: Column(
+                          //               crossAxisAlignment: CrossAxisAlignment.start,
+                          //               children: [
+                          //                 const CardHeader(
+                          //                   title: "Student Document",
+                          //                 ),
+                          //                 CardBody(
+                          //                   child: Column(
+                          //                     mainAxisSize: MainAxisSize.min,
+                          //                     children: const <Widget>[
+                          //                       ListTile(
+                          //                         leading: Icon(Icons.album,
+                          //                             color: Colors.cyan, size: 45),
+                          //                         title: Text(
+                          //                           "Let's Talk About Love",
+                          //                           style: TextStyle(fontSize: 20),
+                          //                         ),
+                          //                         subtitle: Text('Modern Talking Album'),
+                          //                       ),
+                          //                     ],
+                          //                   ),
+                          //                 ),
+                          //               ],
+                          //             ),
+                          //           ),
+                          //         ),
+                          //         isActive: _currentStep >= 0,
+                          //         state: StepState.complete),
+                          //   ],
+                          // ),
+                        )])),
+                selectedButtonIndex==1?
+
+                Card(
+                    clipBehavior: Clip.antiAlias,
+                    child:SingleChildScrollView(
+                        child:
+                _content(context))):const SizedBox()
+
+              ])
+
+
+
+
+
+      // Stepper(
+      //   type: stepperType,
+      //   controlsBuilder: (context, _) {
+      //     return
+      //       Card(
+      //       clipBehavior: Clip.antiAlias,
+      //       child: Column(
+      //         crossAxisAlignment: CrossAxisAlignment.start,
+      //         children: [
+      //           CardBody(
+      //               child: Row(
+      //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      //             children: <Widget>[
+      //               TextButton(
+      //                 onPressed: () {
+      //                   back();
+      //                 },
+      //                 style: appButtonTheme.infoText,
+      //                 child: Row(
+      //                   mainAxisSize: MainAxisSize.min,
+      //                   children: const [
+      //                     Padding(
+      //                       padding: EdgeInsets.only(right: kTextPadding),
+      //                       child: Icon(Icons.arrow_back_ios_outlined),
+      //                     ),
+      //                     Text('Back'),
+      //                   ],
+      //                 ),
+      //               ),
+      //               TextButton(
+      //                 onPressed: () {
+      //                   next();
+      //                 },
+      //                 style: appButtonTheme.infoText,
+      //                 child: Row(
+      //                   mainAxisSize: MainAxisSize.min,
+      //                   children: const [
+      //                     Text('Next'),
+      //                     Padding(
+      //                       padding: EdgeInsets.only(right: kTextPadding),
+      //                       child: Icon(Icons.arrow_forward_ios_outlined),
+      //                     ),
+      //                   ],
+      //                 ),
+      //               ),
+      //             ],
+      //           ))
+      //         ],
+      //       ),
+      //     );
+      //   },
+      //   physics: const ScrollPhysics(),
+      //   currentStep: _currentStep,
+      //   onStepTapped: (step) => tapped(step),
+      //   onStepContinue: next,
+      //   onStepCancel: back,
+      //   steps: <Step>[
+      //     Step(
+      //         title: const Text(''),
+      //         subtitle: const Text(''),
+      //         label: const Text("Student Profile"),
+      //         content: Column(
+      //           children: <Widget>[
+      //             // Text(
+      //             //  "Student Profile",
+      //             //   style: themeData.textTheme.headline4,
+      //             // ),
+      //             Padding(
+      //               padding:
+      //                   const EdgeInsets.symmetric(vertical: kDefaultPadding),
+      //               child: Card(
+      //                 clipBehavior: Clip.antiAlias,
+      //                 child: Column(
+      //                   crossAxisAlignment: CrossAxisAlignment.start,
+      //                   children: [
+      //                     // CardHeader(
+      //                     //   title: _formData.student_name,
+      //                     // ),
+      //                     CardBody(
+      //                       child: FutureBuilder<bool>(
+      //                         initialData: null,
+      //                         future: (_future ??= _getDataAsync()),
+      //                         builder: (context, snapshot) {
+      //                           if (snapshot.connectionState ==
+      //                               ConnectionState.waiting) {
+      //                             if (snapshot.hasData && snapshot.data!) {
+      //                               return _content(context);
+      //                             }
+      //                           } else if (snapshot.hasData && snapshot.data!) {
+      //                             return _content(context);
+      //                           }
+      //
+      //                           return Container(
+      //                             alignment: Alignment.center,
+      //                             padding: const EdgeInsets.symmetric(
+      //                                 vertical: kDefaultPadding),
+      //                             child: SizedBox(
+      //                               height: 40.0,
+      //                               width: 40.0,
+      //                               child: CircularProgressIndicator(
+      //                                 backgroundColor:
+      //                                     themeData.scaffoldBackgroundColor,
+      //                               ),
+      //                             ),
+      //                           );
+      //                         },
+      //                       ),
+      //                     ),
+      //                   ],
+      //                 ),
+      //               ),
+      //             ),
+      //           ],
+      //         ),
+      //         // isActive: _currentStep >= 0,
+      //         // state: StepState.complete),
+      //     isActive: _currentStep >= 0,
+      //     state: _currentStep >= 1 ? StepState.complete : StepState.indexed),
+      //     Step(
+      //         title: const Text(''),
+      //         subtitle: const Text(''),
+      //         label: const Text("Fees Details"),
+      //         content: Column(
+      //           children: <Widget>[
+      //             Padding(
+      //               padding:
+      //                   const EdgeInsets.symmetric(vertical: kDefaultPadding),
+      //               child: FutureBuilder<bool>(
+      //                 initialData: null,
+      //                 future: (_future2 ??= _getDataAsync2()),
+      //                 builder: (context, snapshot) {
+      //                   if (snapshot.connectionState ==
+      //                       ConnectionState.waiting) {
+      //                     if (snapshot.hasData && snapshot.data!) {
+      //                       return _content2(context);
+      //                     }
+      //                   } else if (snapshot.hasData && snapshot.data!) {
+      //                     return _content2(context);
+      //                   }
+      //
+      //                   return Container(
+      //                     alignment: Alignment.center,
+      //                     padding: const EdgeInsets.symmetric(
+      //                         vertical: kDefaultPadding),
+      //                     child: SizedBox(
+      //                       height: 40.0,
+      //                       width: 40.0,
+      //                       child: CircularProgressIndicator(
+      //                         backgroundColor:
+      //                             themeData.scaffoldBackgroundColor,
+      //                       ),
+      //                     ),
+      //                   );
+      //                 },
+      //               ),
+      //             ),
+      //           ],
+      //         ),
+      //         isActive: _currentStep >= 0,
+      //         state: StepState.complete),
+      //     Step(
+      //         title: const Text(''),
+      //         label: const Text("Academic History "),
+      //         content: Padding(
+      //           padding: const EdgeInsets.symmetric(vertical: kDefaultPadding),
+      //           child: Card(
+      //             clipBehavior: Clip.antiAlias,
+      //             child: Column(
+      //               crossAxisAlignment: CrossAxisAlignment.start,
+      //               children: [
+      //                 const CardHeader(
+      //                   title: "Academic History",
+      //                 ),
+      //                 for (int i = 0; i < 3; i++)
+      //                   CardBody(
+      //                     child: Column(
+      //                       mainAxisSize: MainAxisSize.min,
+      //                       children: const <Widget>[
+      //                         Divider(),
+      //                         CardHeader(
+      //                           title: "Session  : 2021-2022",
+      //                         ),
+      //                         ListTile(
+      //                           leading: Icon(Icons.album,
+      //                               color: Colors.cyan, size: 45),
+      //                           title: Text(
+      //                             "Let's Talk About Love",
+      //                             style: TextStyle(fontSize: 20),
+      //                           ),
+      //                           subtitle: Text('Modern Talking Album'),
+      //                         ),
+      //                       ],
+      //                     ),
+      //                   ),
+      //                 const Divider(),
+      //                 Align(
+      //                   alignment: Alignment.center,
+      //                   child: Padding(
+      //                     padding: const EdgeInsets.all(kDefaultPadding),
+      //                     child: SizedBox(
+      //                       height: 40.0,
+      //                       width: 120.0,
+      //                       child: TextButton(
+      //                         onPressed: () {
+      //                           _printScreen();
+      //                         },
+      //                         style: appButtonTheme.infoText,
+      //                         child: Row(
+      //                           mainAxisSize: MainAxisSize.min,
+      //                           children: const [
+      //                             Padding(
+      //                               padding:
+      //                                   EdgeInsets.only(right: kTextPadding),
+      //                               child: Icon(Icons.print_rounded),
+      //                             ),
+      //                             Text('Print'),
+      //                           ],
+      //                         ),
+      //                       ),
+      //                     ),
+      //                   ),
+      //                 ),
+      //               ],
+      //             ),
+      //           ),
+      //         ),
+      //         isActive: _currentStep >= 0,
+      //         state: StepState.complete),
+      //     Step(
+      //         title: const Text(''),
+      //         label: const Text("Student Document"),
+      //         content: Padding(
+      //           padding: const EdgeInsets.symmetric(vertical: kDefaultPadding),
+      //           child: Card(
+      //             clipBehavior: Clip.antiAlias,
+      //             child: Column(
+      //               crossAxisAlignment: CrossAxisAlignment.start,
+      //               children: [
+      //                 const CardHeader(
+      //                   title: "Student Document",
+      //                 ),
+      //                 CardBody(
+      //                   child: Column(
+      //                     mainAxisSize: MainAxisSize.min,
+      //                     children: const <Widget>[
+      //                       ListTile(
+      //                         leading: Icon(Icons.album,
+      //                             color: Colors.cyan, size: 45),
+      //                         title: Text(
+      //                           "Let's Talk About Love",
+      //                           style: TextStyle(fontSize: 20),
+      //                         ),
+      //                         subtitle: Text('Modern Talking Album'),
+      //                       ),
+      //                     ],
+      //                   ),
+      //                 ),
+      //               ],
+      //             ),
+      //           ),
+      //         ),
+      //         isActive: _currentStep >= 0,
+      //         state: StepState.complete),
+      //   ],
+      // ),
     );
   }
 
@@ -1656,7 +1993,9 @@ class _StudentScreen extends State<StudentScreen> {
     // final lang = Lang.of(context);
     final themeData = Theme.of(context);
     final appButtonTheme = themeData.extension<AppButtonTheme>()!;
-    return FormBuilder(
+    return
+
+      FormBuilder(
       key: _formKey,
       autovalidateMode: AutovalidateMode.disabled,
       child: Column(
@@ -1669,22 +2008,24 @@ class _StudentScreen extends State<StudentScreen> {
             builder: (context, constraints) {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+
+
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   CardBody(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         // const Align(alignment: Alignment.topLeft, child: Text("left")),
                         // const Align(alignment: Alignment.centerRight, child: Text("right")),
 
-                        Text("Roll Number         :   ${_formData.rollNumber}",
+                        Text("Roll Number          :   ${_formData.rollNumber}",
                             textAlign: TextAlign.start),
                         const SizedBox(
                           height: 15,
                         ),
-                        Text("Student Name      :   ${_formData.student_name}",
+                        Text("Student Name       :   ${_formData.student_name}",
                             textAlign: TextAlign.start),
                         const SizedBox(
                           height: 15,
@@ -1694,12 +2035,12 @@ class _StudentScreen extends State<StudentScreen> {
                         const SizedBox(
                           height: 15,
                         ),
-                        Text(" Mother Name      :   ${_formData.mother_name}",
+                        Text("Mother Name        :   ${_formData.mother_name}",
                             textAlign: TextAlign.left),
                         const SizedBox(
                           height: 15,
                         ),
-                        Text(" Date Of Birth        :   ${_formData.dob}",
+                        Text("Date Of Birth         :   ${_formData.dob}",
                             textAlign: TextAlign.left),
                       ],
                     ),
@@ -1931,10 +2272,10 @@ class _StudentScreen extends State<StudentScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // const CardHeader(
-                //   title: "Select Session",
+                 const CardHeader(
+                   title: "Fees Section ",
                 //   showDivider: false,
-                // ),
+                 ),
                 // const Text(
                 //   "Select Session",
                 // ),

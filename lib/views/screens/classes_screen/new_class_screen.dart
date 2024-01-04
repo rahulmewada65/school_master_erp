@@ -302,11 +302,14 @@ class _AddClassScreenState extends State<AddClassScreen> {
             children: [
               SizedBox(
                 height: 40.0,
-                child: ElevatedButton(
+                child:
+                ElevatedButton(
                   style:
                       themeData.extension<AppButtonTheme>()!.secondaryElevated,
                   onPressed: () =>
+
                       GoRouter.of(context).go(RouteUri.classes),
+
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.center,
@@ -335,6 +338,9 @@ class _AddClassScreenState extends State<AddClassScreen> {
                       style:
                           themeData.extension<AppButtonTheme>()!.errorElevated,
                       onPressed: () => _doDelete(context),
+
+
+
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
