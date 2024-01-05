@@ -930,8 +930,13 @@ class ExampleSource extends AdvancedDataTableSource<ExamProfileModal> {
     examId = id;
   }
 
+
   final ExamApiService examApiService = ExamApiService();
   final SubjectApiService apiService = SubjectApiService();
+
+   SubjectApiService apiService2 = SubjectApiService();
+
+
   @override
   DataRow? getRow(int index) =>
       lastDetails!.rows[index].getRow(selectedRow, selectedIds, doOperations);
@@ -1007,13 +1012,13 @@ class ExampleSource extends AdvancedDataTableSource<ExamProfileModal> {
   @override
   Future<RemoteDataSourceDetails<ExamProfileModal>> getNextPage(NextPageRequest pageRequest) async {
     try {
-      final queryParameter = <String, dynamic>{
-        'offset': pageRequest.offset.toString(),
-        'pageSize': pageRequest.pageSize.toString(),
-        'sortIndex': ((pageRequest.columnSortIndex ?? 0) + 1).toString(),
-        'sortAsc': ((pageRequest.sortAscending ?? true) ? 1 : 0).toString(),
-        if (lastSearchTerm.isNotEmpty) 'companyFilter': lastSearchTerm,
-      };
+      // final queryParameter = <String, dynamic>{
+      //   'offset': pageRequest.offset.toString(),
+      //   'pageSize': pageRequest.pageSize.toString(),
+      //   'sortIndex': ((pageRequest.columnSortIndex ?? 0) + 1).toString(),
+      //   'sortAsc': ((pageRequest.sortAscending ?? true) ? 1 : 0).toString(),
+      //   if (lastSearchTerm.isNotEmpty) 'companyFilter': lastSearchTerm,
+      // };
       var response = await examApiService.getExamById(examId);
       var response2 = await apiService.getSubjectList();
       final data = jsonDecode(response.body).cast<String, dynamic>();
@@ -1042,6 +1047,8 @@ class ExampleSource extends AdvancedDataTableSource<ExamProfileModal> {
       print("Error in getNextPage: $e");
       return RemoteDataSourceDetails(0, []);
     }
+
+
   }
 
 }
