@@ -104,7 +104,7 @@ class _StudentScreen extends State<StudentScreen> {
                   GestureDetector(
                     child: const Text("Capture Image From Camera"),
                     onTap: () {
-                     // _getImageFromCameraWeb();
+                      // _getImageFromCameraWeb();
                       _getImageFromCamera();
                     },
                   ),
@@ -161,7 +161,7 @@ class _StudentScreen extends State<StudentScreen> {
                                   height: 50,
                                   child: FormBuilderDateTimePicker(
                                     name: 'Date',
-                                    format:DateFormat("dd/MM/yyyy") ,
+                                    format: DateFormat("dd/MM/yyyy"),
                                     onChanged: (value) => {
                                       sbmittedFeeData["date"] = value,
                                     },
@@ -236,8 +236,7 @@ class _StudentScreen extends State<StudentScreen> {
                                       // floatingLabelBehavior: FloatingLabelBehavior.auto,
                                     ),
                                     onChanged: (value) => {
-                                          sbmittedFeeData["decription"] =
-                                              value,
+                                          sbmittedFeeData["decription"] = value,
                                         })),
                           ],
                         ),
@@ -289,7 +288,6 @@ class _StudentScreen extends State<StudentScreen> {
                                   style: TextStyle(fontSize: 12),
                                 )),
                           ],
-
                           onChanged: (value) => {
                             sbmittedFeeData["paymentMode"] = value,
                           },
@@ -480,7 +478,7 @@ class _StudentScreen extends State<StudentScreen> {
         });
   }
 
- // File? imgFile; // Assuming imgFile is a File or File? variable
+  // File? imgFile; // Assuming imgFile is a File or File? variable
 
   XFile? _imageFile;
 
@@ -488,7 +486,7 @@ class _StudentScreen extends State<StudentScreen> {
 
   Future<void> _getImageFromGallery() async {
     final XFile? selectedImage =
-    await _picker.pickImage(source: ImageSource.gallery);
+        await _picker.pickImage(source: ImageSource.gallery);
     setState(() {
       _imageFile = selectedImage;
     });
@@ -497,7 +495,7 @@ class _StudentScreen extends State<StudentScreen> {
 
   Future<void> _getImageFromCamera() async {
     final XFile? takenImage =
-    await _picker.pickImage(source: ImageSource.camera);
+        await _picker.pickImage(source: ImageSource.camera);
     setState(() {
       _imageFile = takenImage;
     });
@@ -1383,609 +1381,73 @@ class _StudentScreen extends State<StudentScreen> {
 
     dialog.show();
   }
-int selectedButtonIndex = -1;
+
+  int selectedButtonIndex = -1;
   @override
   Widget build(BuildContext context) {
-    // final lang = Lang.of(context);
     final themeData = Theme.of(context);
     final appButtonTheme = themeData.extension<AppButtonTheme>()!;
-    ButtonStyle buttonStyle = const ButtonStyle();
-    return
-      PortalMasterLayout(
-          selectedMenuUri: RouteUri.crud,
-          body:
+    return PortalMasterLayout(
+      selectedMenuUri: RouteUri.crud,
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Card(
+            clipBehavior: Clip.antiAlias,
+            child:  Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  for (int index = 0; index < 4; index++)
+        Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.19,
+                      height: 45,
+                      child:
+                    TextButton(
+                      onPressed: () {
+                        setState(() {
+                          selectedButtonIndex = index;
+                        });
+                      },
+                      style:selectedButtonIndex == index ? appButtonTheme.successText : appButtonTheme.secondaryText,
+                      child: Text( index == 0 ? 'Tab 0' : index == 1 ? 'Tab1': index == 2 ? 'Tab2': index == 3 ? 'Tab3':""),
+                    ),),
+                  Container(
+                    color: selectedButtonIndex == index ? Colors.blueGrey : Colors.white, // Set the color of the Container
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.19,
+                      height: 2,
+                    ),
+                  ),])
+                    // ElevatedButton(
+                    //   onPressed: () {
+                    //     setState(() {
+                    //       selectedButtonIndex = index;
+                    //     });
+                    //   },
+                    //   style: ElevatedButton.styleFrom(
+                    //     minimumSize: const Size(140.0, 50.0), // Set the minimum width and height
+                    //     // You can customize other button properties here as needed
+                    //   ),
+                    //   //style: buttonStyle,
+                    //   child: Text('Tab $index'),
+                    // ),
+                ],
+              ),
+            ),
 
-          Column(
-              mainAxisAlignment: MainAxisAlignment.start, // <-- Set MainAxisAlignment.start
-              children: [
-                Card(
-                        clipBehavior: Clip.antiAlias,
-                        child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-
-                            CardBody(
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  for (int index = 0; index < 5; index++)
-                                    OutlinedButton(
-                                      onPressed: () {
-                                        setState(() {
-                                          selectedButtonIndex = index;
-                                        });
-                                      },
-                                      child: Row(
-                                        mainAxisSize: MainAxisSize.min,
-                                        children:  [
-                                          selectedButtonIndex == index ?
-                                          const Padding(
-                                            padding: EdgeInsets.only(right: kTextPadding),
-                                            child:  Icon(Icons.account_circle_rounded),
-                                          )
-                                          :
-                                          const Padding(
-                                            padding: EdgeInsets.only(right: kTextPadding),
-                                            child:  Icon(Icons.access_alarm),
-                                          ),
-                                          Text('button $index'),
-                                        ],
-                                      ),
-                                    ),
-
-
-                                ],
-                              ),
-
-
-
-
-
-                          // Stepper(
-                          //   type: stepperType,
-                          //   controlsBuilder: (context, _) {
-                          //     return
-                          //       Card(
-                          //       clipBehavior: Clip.antiAlias,
-                          //       child: Column(
-                          //         crossAxisAlignment: CrossAxisAlignment.start,
-                          //         children: [
-                          //           CardBody(
-                          //               child: Row(
-                          //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          //             children: <Widget>[
-                          //               TextButton(
-                          //                 onPressed: () {
-                          //                   back();
-                          //                 },
-                          //                 style: appButtonTheme.infoText,
-                          //                 child: Row(
-                          //                   mainAxisSize: MainAxisSize.min,
-                          //                   children: const [
-                          //                     Padding(
-                          //                       padding: EdgeInsets.only(right: kTextPadding),
-                          //                       child: Icon(Icons.arrow_back_ios_outlined),
-                          //                     ),
-                          //                     Text('Back'),
-                          //                   ],
-                          //                 ),
-                          //               ),
-                          //               TextButton(
-                          //                 onPressed: () {
-                          //                   next();
-                          //                 },
-                          //                 style: appButtonTheme.infoText,
-                          //                 child: Row(
-                          //                   mainAxisSize: MainAxisSize.min,
-                          //                   children: const [
-                          //                     Text('Next'),
-                          //                     Padding(
-                          //                       padding: EdgeInsets.only(right: kTextPadding),
-                          //                       child: Icon(Icons.arrow_forward_ios_outlined),
-                          //                     ),
-                          //                   ],
-                          //                 ),
-                          //               ),
-                          //             ],
-                          //           ))
-                          //         ],
-                          //       ),
-                          //     );
-                          //   },
-                          //   physics: const ScrollPhysics(),
-                          //   currentStep: _currentStep,
-                          //   onStepTapped: (step) => tapped(step),
-                          //   onStepContinue: next,
-                          //   onStepCancel: back,
-                          //   steps: <Step>[
-                          //     Step(
-                          //         title: const Text(''),
-                          //         subtitle: const Text(''),
-                          //         label: const Text("Student Profile"),
-                          //         content: Column(
-                          //           children: <Widget>[
-                          //             // Text(
-                          //             //  "Student Profile",
-                          //             //   style: themeData.textTheme.headline4,
-                          //             // ),
-                          //             Padding(
-                          //               padding:
-                          //                   const EdgeInsets.symmetric(vertical: kDefaultPadding),
-                          //               child: Card(
-                          //                 clipBehavior: Clip.antiAlias,
-                          //                 child: Column(
-                          //                   crossAxisAlignment: CrossAxisAlignment.start,
-                          //                   children: [
-                          //                     // CardHeader(
-                          //                     //   title: _formData.student_name,
-                          //                     // ),
-                          //                     CardBody(
-                          //                       child: FutureBuilder<bool>(
-                          //                         initialData: null,
-                          //                         future: (_future ??= _getDataAsync()),
-                          //                         builder: (context, snapshot) {
-                          //                           if (snapshot.connectionState ==
-                          //                               ConnectionState.waiting) {
-                          //                             if (snapshot.hasData && snapshot.data!) {
-                          //                               return _content(context);
-                          //                             }
-                          //                           } else if (snapshot.hasData && snapshot.data!) {
-                          //                             return _content(context);
-                          //                           }
-                          //
-                          //                           return Container(
-                          //                             alignment: Alignment.center,
-                          //                             padding: const EdgeInsets.symmetric(
-                          //                                 vertical: kDefaultPadding),
-                          //                             child: SizedBox(
-                          //                               height: 40.0,
-                          //                               width: 40.0,
-                          //                               child: CircularProgressIndicator(
-                          //                                 backgroundColor:
-                          //                                     themeData.scaffoldBackgroundColor,
-                          //                               ),
-                          //                             ),
-                          //                           );
-                          //                         },
-                          //                       ),
-                          //                     ),
-                          //                   ],
-                          //                 ),
-                          //               ),
-                          //             ),
-                          //           ],
-                          //         ),
-                          //         // isActive: _currentStep >= 0,
-                          //         // state: StepState.complete),
-                          //     isActive: _currentStep >= 0,
-                          //     state: _currentStep >= 1 ? StepState.complete : StepState.indexed),
-                          //     Step(
-                          //         title: const Text(''),
-                          //         subtitle: const Text(''),
-                          //         label: const Text("Fees Details"),
-                          //         content: Column(
-                          //           children: <Widget>[
-                          //             Padding(
-                          //               padding:
-                          //                   const EdgeInsets.symmetric(vertical: kDefaultPadding),
-                          //               child: FutureBuilder<bool>(
-                          //                 initialData: null,
-                          //                 future: (_future2 ??= _getDataAsync2()),
-                          //                 builder: (context, snapshot) {
-                          //                   if (snapshot.connectionState ==
-                          //                       ConnectionState.waiting) {
-                          //                     if (snapshot.hasData && snapshot.data!) {
-                          //                       return _content2(context);
-                          //                     }
-                          //                   } else if (snapshot.hasData && snapshot.data!) {
-                          //                     return _content2(context);
-                          //                   }
-                          //
-                          //                   return Container(
-                          //                     alignment: Alignment.center,
-                          //                     padding: const EdgeInsets.symmetric(
-                          //                         vertical: kDefaultPadding),
-                          //                     child: SizedBox(
-                          //                       height: 40.0,
-                          //                       width: 40.0,
-                          //                       child: CircularProgressIndicator(
-                          //                         backgroundColor:
-                          //                             themeData.scaffoldBackgroundColor,
-                          //                       ),
-                          //                     ),
-                          //                   );
-                          //                 },
-                          //               ),
-                          //             ),
-                          //           ],
-                          //         ),
-                          //         isActive: _currentStep >= 0,
-                          //         state: StepState.complete),
-                          //     Step(
-                          //         title: const Text(''),
-                          //         label: const Text("Academic History "),
-                          //         content: Padding(
-                          //           padding: const EdgeInsets.symmetric(vertical: kDefaultPadding),
-                          //           child: Card(
-                          //             clipBehavior: Clip.antiAlias,
-                          //             child: Column(
-                          //               crossAxisAlignment: CrossAxisAlignment.start,
-                          //               children: [
-                          //                 const CardHeader(
-                          //                   title: "Academic History",
-                          //                 ),
-                          //                 for (int i = 0; i < 3; i++)
-                          //                   CardBody(
-                          //                     child: Column(
-                          //                       mainAxisSize: MainAxisSize.min,
-                          //                       children: const <Widget>[
-                          //                         Divider(),
-                          //                         CardHeader(
-                          //                           title: "Session  : 2021-2022",
-                          //                         ),
-                          //                         ListTile(
-                          //                           leading: Icon(Icons.album,
-                          //                               color: Colors.cyan, size: 45),
-                          //                           title: Text(
-                          //                             "Let's Talk About Love",
-                          //                             style: TextStyle(fontSize: 20),
-                          //                           ),
-                          //                           subtitle: Text('Modern Talking Album'),
-                          //                         ),
-                          //                       ],
-                          //                     ),
-                          //                   ),
-                          //                 const Divider(),
-                          //                 Align(
-                          //                   alignment: Alignment.center,
-                          //                   child: Padding(
-                          //                     padding: const EdgeInsets.all(kDefaultPadding),
-                          //                     child: SizedBox(
-                          //                       height: 40.0,
-                          //                       width: 120.0,
-                          //                       child: TextButton(
-                          //                         onPressed: () {
-                          //                           _printScreen();
-                          //                         },
-                          //                         style: appButtonTheme.infoText,
-                          //                         child: Row(
-                          //                           mainAxisSize: MainAxisSize.min,
-                          //                           children: const [
-                          //                             Padding(
-                          //                               padding:
-                          //                                   EdgeInsets.only(right: kTextPadding),
-                          //                               child: Icon(Icons.print_rounded),
-                          //                             ),
-                          //                             Text('Print'),
-                          //                           ],
-                          //                         ),
-                          //                       ),
-                          //                     ),
-                          //                   ),
-                          //                 ),
-                          //               ],
-                          //             ),
-                          //           ),
-                          //         ),
-                          //         isActive: _currentStep >= 0,
-                          //         state: StepState.complete),
-                          //     Step(
-                          //         title: const Text(''),
-                          //         label: const Text("Student Document"),
-                          //         content: Padding(
-                          //           padding: const EdgeInsets.symmetric(vertical: kDefaultPadding),
-                          //           child: Card(
-                          //             clipBehavior: Clip.antiAlias,
-                          //             child: Column(
-                          //               crossAxisAlignment: CrossAxisAlignment.start,
-                          //               children: [
-                          //                 const CardHeader(
-                          //                   title: "Student Document",
-                          //                 ),
-                          //                 CardBody(
-                          //                   child: Column(
-                          //                     mainAxisSize: MainAxisSize.min,
-                          //                     children: const <Widget>[
-                          //                       ListTile(
-                          //                         leading: Icon(Icons.album,
-                          //                             color: Colors.cyan, size: 45),
-                          //                         title: Text(
-                          //                           "Let's Talk About Love",
-                          //                           style: TextStyle(fontSize: 20),
-                          //                         ),
-                          //                         subtitle: Text('Modern Talking Album'),
-                          //                       ),
-                          //                     ],
-                          //                   ),
-                          //                 ),
-                          //               ],
-                          //             ),
-                          //           ),
-                          //         ),
-                          //         isActive: _currentStep >= 0,
-                          //         state: StepState.complete),
-                          //   ],
-                          // ),
-                        )])),
-                selectedButtonIndex==1?
-
-                Card(
-                    clipBehavior: Clip.antiAlias,
-                    child:SingleChildScrollView(
-                        child:
-                _content(context))):const SizedBox()
-
-              ])
-
-
-
-
-
-      // Stepper(
-      //   type: stepperType,
-      //   controlsBuilder: (context, _) {
-      //     return
-      //       Card(
-      //       clipBehavior: Clip.antiAlias,
-      //       child: Column(
-      //         crossAxisAlignment: CrossAxisAlignment.start,
-      //         children: [
-      //           CardBody(
-      //               child: Row(
-      //             mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      //             children: <Widget>[
-      //               TextButton(
-      //                 onPressed: () {
-      //                   back();
-      //                 },
-      //                 style: appButtonTheme.infoText,
-      //                 child: Row(
-      //                   mainAxisSize: MainAxisSize.min,
-      //                   children: const [
-      //                     Padding(
-      //                       padding: EdgeInsets.only(right: kTextPadding),
-      //                       child: Icon(Icons.arrow_back_ios_outlined),
-      //                     ),
-      //                     Text('Back'),
-      //                   ],
-      //                 ),
-      //               ),
-      //               TextButton(
-      //                 onPressed: () {
-      //                   next();
-      //                 },
-      //                 style: appButtonTheme.infoText,
-      //                 child: Row(
-      //                   mainAxisSize: MainAxisSize.min,
-      //                   children: const [
-      //                     Text('Next'),
-      //                     Padding(
-      //                       padding: EdgeInsets.only(right: kTextPadding),
-      //                       child: Icon(Icons.arrow_forward_ios_outlined),
-      //                     ),
-      //                   ],
-      //                 ),
-      //               ),
-      //             ],
-      //           ))
-      //         ],
-      //       ),
-      //     );
-      //   },
-      //   physics: const ScrollPhysics(),
-      //   currentStep: _currentStep,
-      //   onStepTapped: (step) => tapped(step),
-      //   onStepContinue: next,
-      //   onStepCancel: back,
-      //   steps: <Step>[
-      //     Step(
-      //         title: const Text(''),
-      //         subtitle: const Text(''),
-      //         label: const Text("Student Profile"),
-      //         content: Column(
-      //           children: <Widget>[
-      //             // Text(
-      //             //  "Student Profile",
-      //             //   style: themeData.textTheme.headline4,
-      //             // ),
-      //             Padding(
-      //               padding:
-      //                   const EdgeInsets.symmetric(vertical: kDefaultPadding),
-      //               child: Card(
-      //                 clipBehavior: Clip.antiAlias,
-      //                 child: Column(
-      //                   crossAxisAlignment: CrossAxisAlignment.start,
-      //                   children: [
-      //                     // CardHeader(
-      //                     //   title: _formData.student_name,
-      //                     // ),
-      //                     CardBody(
-      //                       child: FutureBuilder<bool>(
-      //                         initialData: null,
-      //                         future: (_future ??= _getDataAsync()),
-      //                         builder: (context, snapshot) {
-      //                           if (snapshot.connectionState ==
-      //                               ConnectionState.waiting) {
-      //                             if (snapshot.hasData && snapshot.data!) {
-      //                               return _content(context);
-      //                             }
-      //                           } else if (snapshot.hasData && snapshot.data!) {
-      //                             return _content(context);
-      //                           }
-      //
-      //                           return Container(
-      //                             alignment: Alignment.center,
-      //                             padding: const EdgeInsets.symmetric(
-      //                                 vertical: kDefaultPadding),
-      //                             child: SizedBox(
-      //                               height: 40.0,
-      //                               width: 40.0,
-      //                               child: CircularProgressIndicator(
-      //                                 backgroundColor:
-      //                                     themeData.scaffoldBackgroundColor,
-      //                               ),
-      //                             ),
-      //                           );
-      //                         },
-      //                       ),
-      //                     ),
-      //                   ],
-      //                 ),
-      //               ),
-      //             ),
-      //           ],
-      //         ),
-      //         // isActive: _currentStep >= 0,
-      //         // state: StepState.complete),
-      //     isActive: _currentStep >= 0,
-      //     state: _currentStep >= 1 ? StepState.complete : StepState.indexed),
-      //     Step(
-      //         title: const Text(''),
-      //         subtitle: const Text(''),
-      //         label: const Text("Fees Details"),
-      //         content: Column(
-      //           children: <Widget>[
-      //             Padding(
-      //               padding:
-      //                   const EdgeInsets.symmetric(vertical: kDefaultPadding),
-      //               child: FutureBuilder<bool>(
-      //                 initialData: null,
-      //                 future: (_future2 ??= _getDataAsync2()),
-      //                 builder: (context, snapshot) {
-      //                   if (snapshot.connectionState ==
-      //                       ConnectionState.waiting) {
-      //                     if (snapshot.hasData && snapshot.data!) {
-      //                       return _content2(context);
-      //                     }
-      //                   } else if (snapshot.hasData && snapshot.data!) {
-      //                     return _content2(context);
-      //                   }
-      //
-      //                   return Container(
-      //                     alignment: Alignment.center,
-      //                     padding: const EdgeInsets.symmetric(
-      //                         vertical: kDefaultPadding),
-      //                     child: SizedBox(
-      //                       height: 40.0,
-      //                       width: 40.0,
-      //                       child: CircularProgressIndicator(
-      //                         backgroundColor:
-      //                             themeData.scaffoldBackgroundColor,
-      //                       ),
-      //                     ),
-      //                   );
-      //                 },
-      //               ),
-      //             ),
-      //           ],
-      //         ),
-      //         isActive: _currentStep >= 0,
-      //         state: StepState.complete),
-      //     Step(
-      //         title: const Text(''),
-      //         label: const Text("Academic History "),
-      //         content: Padding(
-      //           padding: const EdgeInsets.symmetric(vertical: kDefaultPadding),
-      //           child: Card(
-      //             clipBehavior: Clip.antiAlias,
-      //             child: Column(
-      //               crossAxisAlignment: CrossAxisAlignment.start,
-      //               children: [
-      //                 const CardHeader(
-      //                   title: "Academic History",
-      //                 ),
-      //                 for (int i = 0; i < 3; i++)
-      //                   CardBody(
-      //                     child: Column(
-      //                       mainAxisSize: MainAxisSize.min,
-      //                       children: const <Widget>[
-      //                         Divider(),
-      //                         CardHeader(
-      //                           title: "Session  : 2021-2022",
-      //                         ),
-      //                         ListTile(
-      //                           leading: Icon(Icons.album,
-      //                               color: Colors.cyan, size: 45),
-      //                           title: Text(
-      //                             "Let's Talk About Love",
-      //                             style: TextStyle(fontSize: 20),
-      //                           ),
-      //                           subtitle: Text('Modern Talking Album'),
-      //                         ),
-      //                       ],
-      //                     ),
-      //                   ),
-      //                 const Divider(),
-      //                 Align(
-      //                   alignment: Alignment.center,
-      //                   child: Padding(
-      //                     padding: const EdgeInsets.all(kDefaultPadding),
-      //                     child: SizedBox(
-      //                       height: 40.0,
-      //                       width: 120.0,
-      //                       child: TextButton(
-      //                         onPressed: () {
-      //                           _printScreen();
-      //                         },
-      //                         style: appButtonTheme.infoText,
-      //                         child: Row(
-      //                           mainAxisSize: MainAxisSize.min,
-      //                           children: const [
-      //                             Padding(
-      //                               padding:
-      //                                   EdgeInsets.only(right: kTextPadding),
-      //                               child: Icon(Icons.print_rounded),
-      //                             ),
-      //                             Text('Print'),
-      //                           ],
-      //                         ),
-      //                       ),
-      //                     ),
-      //                   ),
-      //                 ),
-      //               ],
-      //             ),
-      //           ),
-      //         ),
-      //         isActive: _currentStep >= 0,
-      //         state: StepState.complete),
-      //     Step(
-      //         title: const Text(''),
-      //         label: const Text("Student Document"),
-      //         content: Padding(
-      //           padding: const EdgeInsets.symmetric(vertical: kDefaultPadding),
-      //           child: Card(
-      //             clipBehavior: Clip.antiAlias,
-      //             child: Column(
-      //               crossAxisAlignment: CrossAxisAlignment.start,
-      //               children: [
-      //                 const CardHeader(
-      //                   title: "Student Document",
-      //                 ),
-      //                 CardBody(
-      //                   child: Column(
-      //                     mainAxisSize: MainAxisSize.min,
-      //                     children: const <Widget>[
-      //                       ListTile(
-      //                         leading: Icon(Icons.album,
-      //                             color: Colors.cyan, size: 45),
-      //                         title: Text(
-      //                           "Let's Talk About Love",
-      //                           style: TextStyle(fontSize: 20),
-      //                         ),
-      //                         subtitle: Text('Modern Talking Album'),
-      //                       ),
-      //                     ],
-      //                   ),
-      //                 ),
-      //               ],
-      //             ),
-      //           ),
-      //         ),
-      //         isActive: _currentStep >= 0,
-      //         state: StepState.complete),
-      //   ],
-      // ),
+          if (selectedButtonIndex == 1) ...[
+            Card(
+              clipBehavior: Clip.antiAlias,
+              child: SingleChildScrollView(
+                child: _content(context),
+              ),
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -1993,9 +1455,7 @@ int selectedButtonIndex = -1;
     // final lang = Lang.of(context);
     final themeData = Theme.of(context);
     final appButtonTheme = themeData.extension<AppButtonTheme>()!;
-    return
-
-      FormBuilder(
+    return FormBuilder(
       key: _formKey,
       autovalidateMode: AutovalidateMode.disabled,
       child: Column(
@@ -2008,13 +1468,11 @@ int selectedButtonIndex = -1;
             builder: (context, constraints) {
               return Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-
-
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
                   CardBody(
                     child: Column(
-                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: <Widget>[
                         // const Align(alignment: Alignment.topLeft, child: Text("left")),
@@ -2051,10 +1509,12 @@ int selectedButtonIndex = -1;
                       children: [
                         CircleAvatar(
                           backgroundColor: Colors.white,
-                          backgroundImage: _imageFile != null?  NetworkImage(
-                            _imageFile!.path,
-                          ):null,
-                        // Use NetworkImage for network URLs
+                          backgroundImage: _imageFile != null
+                              ? NetworkImage(
+                                  _imageFile!.path,
+                                )
+                              : null,
+                          // Use NetworkImage for network URLs
                           radius: 60.0,
                         ),
                         Positioned(
@@ -2065,7 +1525,8 @@ int selectedButtonIndex = -1;
                             width: 40.0,
                             child: ElevatedButton(
                               onPressed: () {
-                                showOptionsDialog(context); // Show options to pick or capture image
+                                showOptionsDialog(
+                                    context); // Show options to pick or capture image
                               },
                               style: ElevatedButton.styleFrom(
                                 shape: const CircleBorder(),
@@ -2272,10 +1733,10 @@ int selectedButtonIndex = -1;
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                 const CardHeader(
-                   title: "Fees Section ",
-                //   showDivider: false,
-                 ),
+                const CardHeader(
+                  title: "Fees Section ",
+                  //   showDivider: false,
+                ),
                 // const Text(
                 //   "Select Session",
                 // ),
@@ -3437,8 +2898,8 @@ int selectedButtonIndex = -1;
   discountAmount(value, selectedDataState) {
     selectedData["disscount"] = value;
     if (value != "") {
-      setState(() =>
-          discountAmountVar = (selectedDataState - double.parse(value!)));
+      setState(
+          () => discountAmountVar = (selectedDataState - double.parse(value!)));
     } else {
       setState(() => discountAmountVar = selectedDataState);
     }
@@ -3458,8 +2919,8 @@ int selectedButtonIndex = -1;
             if (studentDataFee.isNotEmpty)
               {
                 setState(() => studentDataFee = studentDataFee),
-                setState(() => selectedElement =
-                    studentDataFee[0]["feesModifiedElement"]),
+                setState(() =>
+                    selectedElement = studentDataFee[0]["feesModifiedElement"]),
                 setState(() => discountAmountVar = (studentDataFee[0]
                         ["totalAmount"] -
                     studentDataFee[0]["disscount"])),
@@ -3578,8 +3039,8 @@ int selectedButtonIndex = -1;
       '2021-2022',
       '2022-2023',
     ];
-    final foundPeople = arr.where((element) =>
-        element == "${currentDate.year}-${currentDate.year + 1}");
+    final foundPeople = arr.where(
+        (element) => element == "${currentDate.year}-${currentDate.year + 1}");
     // var condition =
     //     arr.map((e) => return( "${currentDate.year}-${currentDate.year + 1}"));
     // print(foundPeople);

@@ -192,7 +192,8 @@ class _FormScreenState extends State<FormScreen> {
             visible: widget.id.isNotEmpty,
             child: Padding(
               padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-              child: LayoutBuilder(
+              child:
+              LayoutBuilder(
                 builder: (context, constraints) {
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
