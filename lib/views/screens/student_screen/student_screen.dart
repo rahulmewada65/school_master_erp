@@ -10,6 +10,7 @@ import 'package:flutter_form_builder/flutter_form_builder.dart';
 import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
 import 'package:printing/printing.dart';
 import 'package:school_master_erp/services/profile_service.dart';
@@ -103,7 +104,7 @@ class _StudentScreen extends State<StudentScreen> {
                   GestureDetector(
                     child: const Text("Capture Image From Camera"),
                     onTap: () {
-                     // _getImageFromCameraWeb();
+                      // _getImageFromCameraWeb();
                       _getImageFromCamera();
                     },
                   ),
@@ -160,6 +161,7 @@ class _StudentScreen extends State<StudentScreen> {
                                   height: 50,
                                   child: FormBuilderDateTimePicker(
                                     name: 'Date',
+                                    format: DateFormat("dd/MM/yyyy"),
                                     onChanged: (value) => {
                                       sbmittedFeeData["date"] = value,
                                     },
@@ -217,7 +219,7 @@ class _StudentScreen extends State<StudentScreen> {
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           crossAxisAlignment: CrossAxisAlignment.center,
                           children: [
-                            const Text("Disruption"),
+                            const Text("Description"),
                             SizedBox(
                                 width: (kDefaultPadding * 7),
                                 height: 50,
@@ -227,21 +229,20 @@ class _StudentScreen extends State<StudentScreen> {
                                       signed: true,
                                       decimal: true,
                                     ),
-                                    name: 'Disruption',
+                                    name: 'Description',
                                     decoration: const InputDecoration(
-                                      labelText: 'Disruption',
+                                      labelText: 'Description',
                                       border: UnderlineInputBorder(),
                                       // floatingLabelBehavior: FloatingLabelBehavior.auto,
                                     ),
                                     onChanged: (value) => {
-                                          sbmittedFeeData["decription"] =
-                                              value,
+                                          sbmittedFeeData["decription"] = value,
                                         })),
                           ],
                         ),
                       ),
                       const Divider(),
-                      const Text("Payment Mood"),
+                      const Text("Payment Mode"),
                       SizedBox(
                         width: (kDefaultPadding * 15),
                         child: FormBuilderFilterChip(
@@ -477,7 +478,7 @@ class _StudentScreen extends State<StudentScreen> {
         });
   }
 
- // File? imgFile; // Assuming imgFile is a File or File? variable
+  // File? imgFile; // Assuming imgFile is a File or File? variable
 
   XFile? _imageFile;
 
@@ -485,7 +486,7 @@ class _StudentScreen extends State<StudentScreen> {
 
   Future<void> _getImageFromGallery() async {
     final XFile? selectedImage =
-    await _picker.pickImage(source: ImageSource.gallery);
+        await _picker.pickImage(source: ImageSource.gallery);
     setState(() {
       _imageFile = selectedImage;
     });
@@ -494,7 +495,7 @@ class _StudentScreen extends State<StudentScreen> {
 
   Future<void> _getImageFromCamera() async {
     final XFile? takenImage =
-    await _picker.pickImage(source: ImageSource.camera);
+        await _picker.pickImage(source: ImageSource.camera);
     setState(() {
       _imageFile = takenImage;
     });
@@ -621,7 +622,7 @@ class _StudentScreen extends State<StudentScreen> {
                                 height: 15,
                               ),
                               pw.Text(
-                                "Student Name      :   ${_formData.student_name}",
+                                "Student Name        :   ${_formData.student_name}",
                               ),
                               pw.SizedBox(
                                 height: 15,
@@ -1381,272 +1382,70 @@ class _StudentScreen extends State<StudentScreen> {
     dialog.show();
   }
 
+  int selectedButtonIndex = -1;
   @override
   Widget build(BuildContext context) {
-    // final lang = Lang.of(context);
     final themeData = Theme.of(context);
     final appButtonTheme = themeData.extension<AppButtonTheme>()!;
     return PortalMasterLayout(
       selectedMenuUri: RouteUri.crud,
-      body: Stepper(
-        type: stepperType,
-        controlsBuilder: (context, _) {
-          return Card(
+      body: Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Card(
             clipBehavior: Clip.antiAlias,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                CardBody(
-                    child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: <Widget>[
+            child:  Row(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  for (int index = 0; index < 4; index++)
+        Column(
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+                    SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.19,
+                      height: 45,
+                      child:
                     TextButton(
                       onPressed: () {
-                        back();
+                        setState(() {
+                          selectedButtonIndex = index;
+                        });
                       },
-                      style: appButtonTheme.infoText,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Padding(
-                            padding: EdgeInsets.only(right: kTextPadding),
-                            child: Icon(Icons.arrow_back_ios_outlined),
-                          ),
-                          Text('Back'),
-                        ],
-                      ),
+                      style:selectedButtonIndex == index ? appButtonTheme.successText : appButtonTheme.secondaryText,
+                      child: Text( index == 0 ? 'Tab 0' : index == 1 ? 'Tab1': index == 2 ? 'Tab2': index == 3 ? 'Tab3':""),
+                    ),),
+                  Container(
+                    color: selectedButtonIndex == index ? Colors.blueGrey : Colors.white, // Set the color of the Container
+                    child: SizedBox(
+                      width: MediaQuery.of(context).size.width * 0.19,
+                      height: 2,
                     ),
-                    TextButton(
-                      onPressed: () {
-                        next();
-                      },
-                      style: appButtonTheme.infoText,
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: const [
-                          Text('Next'),
-                          Padding(
-                            padding: EdgeInsets.only(right: kTextPadding),
-                            child: Icon(Icons.arrow_forward_ios_outlined),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ))
-              ],
+                  ),])
+                    // ElevatedButton(
+                    //   onPressed: () {
+                    //     setState(() {
+                    //       selectedButtonIndex = index;
+                    //     });
+                    //   },
+                    //   style: ElevatedButton.styleFrom(
+                    //     minimumSize: const Size(140.0, 50.0), // Set the minimum width and height
+                    //     // You can customize other button properties here as needed
+                    //   ),
+                    //   //style: buttonStyle,
+                    //   child: Text('Tab $index'),
+                    // ),
+                ],
+              ),
             ),
-          );
-        },
-        physics: const ScrollPhysics(),
-        currentStep: _currentStep,
-        onStepTapped: (step) => tapped(step),
-        onStepContinue: next,
-        onStepCancel: back,
-        steps: <Step>[
-          Step(
-              title: const Text(''),
-              subtitle: const Text(''),
-              label: const Text("Student Profile"),
-              content: Column(
-                children: <Widget>[
-                  // Text(
-                  //  "Student Profile",
-                  //   style: themeData.textTheme.headline4,
-                  // ),
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: kDefaultPadding),
-                    child: Card(
-                      clipBehavior: Clip.antiAlias,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // CardHeader(
-                          //   title: _formData.student_name,
-                          // ),
-                          CardBody(
-                            child: FutureBuilder<bool>(
-                              initialData: null,
-                              future: (_future ??= _getDataAsync()),
-                              builder: (context, snapshot) {
-                                if (snapshot.connectionState ==
-                                    ConnectionState.waiting) {
-                                  if (snapshot.hasData && snapshot.data!) {
-                                    return _content(context);
-                                  }
-                                } else if (snapshot.hasData && snapshot.data!) {
-                                  return _content(context);
-                                }
 
-                                return Container(
-                                  alignment: Alignment.center,
-                                  padding: const EdgeInsets.symmetric(
-                                      vertical: kDefaultPadding),
-                                  child: SizedBox(
-                                    height: 40.0,
-                                    width: 40.0,
-                                    child: CircularProgressIndicator(
-                                      backgroundColor:
-                                          themeData.scaffoldBackgroundColor,
-                                    ),
-                                  ),
-                                );
-                              },
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ],
+          if (selectedButtonIndex == 1) ...[
+            Card(
+              clipBehavior: Clip.antiAlias,
+              child: SingleChildScrollView(
+                child: _content(context),
               ),
-              isActive: _currentStep >= 0,
-              state: StepState.complete),
-          Step(
-              title: const Text(''),
-              subtitle: const Text(''),
-              label: const Text("Fees Details"),
-              content: Column(
-                children: <Widget>[
-                  Padding(
-                    padding:
-                        const EdgeInsets.symmetric(vertical: kDefaultPadding),
-                    child: FutureBuilder<bool>(
-                      initialData: null,
-                      future: (_future2 ??= _getDataAsync2()),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState ==
-                            ConnectionState.waiting) {
-                          if (snapshot.hasData && snapshot.data!) {
-                            return _content2(context);
-                          }
-                        } else if (snapshot.hasData && snapshot.data!) {
-                          return _content2(context);
-                        }
-
-                        return Container(
-                          alignment: Alignment.center,
-                          padding: const EdgeInsets.symmetric(
-                              vertical: kDefaultPadding),
-                          child: SizedBox(
-                            height: 40.0,
-                            width: 40.0,
-                            child: CircularProgressIndicator(
-                              backgroundColor:
-                                  themeData.scaffoldBackgroundColor,
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              isActive: _currentStep >= 0,
-              state: StepState.complete),
-          Step(
-              title: const Text(''),
-              label: const Text("Fees Details"),
-              content: Padding(
-                padding: const EdgeInsets.symmetric(vertical: kDefaultPadding),
-                child: Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const CardHeader(
-                        title: "Fees Details",
-                      ),
-                      for (int i = 0; i < 3; i++)
-                        CardBody(
-                          child: Column(
-                            mainAxisSize: MainAxisSize.min,
-                            children: const <Widget>[
-                              Divider(),
-                              CardHeader(
-                                title: "Session  : 2021-2022",
-                              ),
-                              ListTile(
-                                leading: Icon(Icons.album,
-                                    color: Colors.cyan, size: 45),
-                                title: Text(
-                                  "Let's Talk About Love",
-                                  style: TextStyle(fontSize: 20),
-                                ),
-                                subtitle: Text('Modern Talking Album'),
-                              ),
-                            ],
-                          ),
-                        ),
-                      const Divider(),
-                      Align(
-                        alignment: Alignment.center,
-                        child: Padding(
-                          padding: const EdgeInsets.all(kDefaultPadding),
-                          child: SizedBox(
-                            height: 40.0,
-                            width: 120.0,
-                            child: TextButton(
-                              onPressed: () {
-                                _printScreen();
-                              },
-                              style: appButtonTheme.infoText,
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: const [
-                                  Padding(
-                                    padding:
-                                        EdgeInsets.only(right: kTextPadding),
-                                    child: Icon(Icons.print_rounded),
-                                  ),
-                                  Text('Print'),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              isActive: _currentStep >= 0,
-              state: StepState.complete),
-          Step(
-              title: const Text(''),
-              content: Padding(
-                padding: const EdgeInsets.symmetric(vertical: kDefaultPadding),
-                child: Card(
-                  clipBehavior: Clip.antiAlias,
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const CardHeader(
-                        title: "Address Details",
-                      ),
-                      CardBody(
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          children: const <Widget>[
-                            ListTile(
-                              leading: Icon(Icons.album,
-                                  color: Colors.cyan, size: 45),
-                              title: Text(
-                                "Let's Talk About Love",
-                                style: TextStyle(fontSize: 20),
-                              ),
-                              subtitle: Text('Modern Talking Album'),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
-              isActive: _currentStep >= 0,
-              state: StepState.complete),
+            ),
+          ],
         ],
       ),
     );
@@ -1679,12 +1478,12 @@ class _StudentScreen extends State<StudentScreen> {
                         // const Align(alignment: Alignment.topLeft, child: Text("left")),
                         // const Align(alignment: Alignment.centerRight, child: Text("right")),
 
-                        Text("Roll Number         :   ${_formData.rollNumber}",
+                        Text("Roll Number          :   ${_formData.rollNumber}",
                             textAlign: TextAlign.start),
                         const SizedBox(
                           height: 15,
                         ),
-                        Text("Student Name      :   ${_formData.student_name}",
+                        Text("Student Name       :   ${_formData.student_name}",
                             textAlign: TextAlign.start),
                         const SizedBox(
                           height: 15,
@@ -1694,12 +1493,12 @@ class _StudentScreen extends State<StudentScreen> {
                         const SizedBox(
                           height: 15,
                         ),
-                        Text(" Mother Name      :   ${_formData.mother_name}",
+                        Text("Mother Name        :   ${_formData.mother_name}",
                             textAlign: TextAlign.left),
                         const SizedBox(
                           height: 15,
                         ),
-                        Text(" Date Of Birth        :   ${_formData.dob}",
+                        Text("Date Of Birth         :   ${_formData.dob}",
                             textAlign: TextAlign.left),
                       ],
                     ),
@@ -1710,10 +1509,12 @@ class _StudentScreen extends State<StudentScreen> {
                       children: [
                         CircleAvatar(
                           backgroundColor: Colors.white,
-                          backgroundImage: _imageFile != null?  NetworkImage(
-                            _imageFile!.path,
-                          ):null,
-                        // Use NetworkImage for network URLs
+                          backgroundImage: _imageFile != null
+                              ? NetworkImage(
+                                  _imageFile!.path,
+                                )
+                              : null,
+                          // Use NetworkImage for network URLs
                           radius: 60.0,
                         ),
                         Positioned(
@@ -1724,7 +1525,8 @@ class _StudentScreen extends State<StudentScreen> {
                             width: 40.0,
                             child: ElevatedButton(
                               onPressed: () {
-                                showOptionsDialog(context); // Show options to pick or capture image
+                                showOptionsDialog(
+                                    context); // Show options to pick or capture image
                               },
                               style: ElevatedButton.styleFrom(
                                 shape: const CircleBorder(),
@@ -1931,10 +1733,10 @@ class _StudentScreen extends State<StudentScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // const CardHeader(
-                //   title: "Select Session",
-                //   showDivider: false,
-                // ),
+                const CardHeader(
+                  title: "Fees Section ",
+                  //   showDivider: false,
+                ),
                 // const Text(
                 //   "Select Session",
                 // ),
@@ -3096,8 +2898,8 @@ class _StudentScreen extends State<StudentScreen> {
   discountAmount(value, selectedDataState) {
     selectedData["disscount"] = value;
     if (value != "") {
-      setState(() =>
-          discountAmountVar = (selectedDataState - double.parse(value!)));
+      setState(
+          () => discountAmountVar = (selectedDataState - double.parse(value!)));
     } else {
       setState(() => discountAmountVar = selectedDataState);
     }
@@ -3117,8 +2919,8 @@ class _StudentScreen extends State<StudentScreen> {
             if (studentDataFee.isNotEmpty)
               {
                 setState(() => studentDataFee = studentDataFee),
-                setState(() => selectedElement =
-                    studentDataFee[0]["feesModifiedElement"]),
+                setState(() =>
+                    selectedElement = studentDataFee[0]["feesModifiedElement"]),
                 setState(() => discountAmountVar = (studentDataFee[0]
                         ["totalAmount"] -
                     studentDataFee[0]["disscount"])),
@@ -3237,8 +3039,8 @@ class _StudentScreen extends State<StudentScreen> {
       '2021-2022',
       '2022-2023',
     ];
-    final foundPeople = arr.where((element) =>
-        element == "${currentDate.year}-${currentDate.year + 1}");
+    final foundPeople = arr.where(
+        (element) => element == "${currentDate.year}-${currentDate.year + 1}");
     // var condition =
     //     arr.map((e) => return( "${currentDate.year}-${currentDate.year + 1}"));
     // print(foundPeople);

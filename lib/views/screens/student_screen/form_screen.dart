@@ -112,7 +112,7 @@ class _FormScreenState extends State<FormScreen> {
         'Student - ${widget.id.isEmpty ? "Admission Form" : " Update Form"}';
 
     return PortalMasterLayout(
-      //selectedMenuUri: RouteUri.crud,
+      selectedMenuUri: RouteUri.crud,
       body: ListView(
         padding: const EdgeInsets.all(kDefaultPadding),
         children: [
@@ -188,12 +188,12 @@ class _FormScreenState extends State<FormScreen> {
           //     fontSize: 13.0,
           //   ),
           // ),
-
           Visibility(
             visible: widget.id.isNotEmpty,
             child: Padding(
               padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-              child: LayoutBuilder(
+              child:
+              LayoutBuilder(
                 builder: (context, constraints) {
                   return Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -206,8 +206,7 @@ class _FormScreenState extends State<FormScreen> {
                           decoration: const InputDecoration(
                             labelText: 'Student Id',
                             //hintText: '123456789',
-                            helperText:
-                                'Note: Student Id and Roll Number not Editable.',
+                           // helperText:'Note: Student Id and Roll Number not Editable.',
                             border: OutlineInputBorder(),
                             floatingLabelBehavior: FloatingLabelBehavior.always,
                           ),
@@ -250,9 +249,10 @@ class _FormScreenState extends State<FormScreen> {
               name: 'student_name',
               decoration: const InputDecoration(
                 labelText: 'Student Name',
-                hintText: 'Full Name',
-                helperText: 'Helper text',
+                hintText: 'eg. John Smith',
+              //  helperText: 'Helper text',
                 border: OutlineInputBorder(),
+                hintStyle: TextStyle(color: Colors.white30),
                 floatingLabelBehavior: FloatingLabelBehavior.always,
               ),
               initialValue: _formData.studentName,
@@ -266,9 +266,10 @@ class _FormScreenState extends State<FormScreen> {
               name: 'father_Name',
               decoration: const InputDecoration(
                 labelText: 'Father Name',
-                hintText: 'Full Name',
-                helperText: 'Helper text',
+                hintText: 'Enter Father Name',
+                //helperText: 'Helper text',
                 border: OutlineInputBorder(),
+                hintStyle: TextStyle(color: Colors.white30),
                 floatingLabelBehavior: FloatingLabelBehavior.always,
               ),
               initialValue: _formData.fatherName,
@@ -282,9 +283,10 @@ class _FormScreenState extends State<FormScreen> {
               name: 'mother_name',
               decoration: const InputDecoration(
                 labelText: 'Mother Name',
-                hintText: 'Full Name',
-                helperText: 'Helper text',
+                hintText: 'Enter Mother Name',
+                //helperText: 'Helper text',
                 border: OutlineInputBorder(),
+                hintStyle: TextStyle(color: Colors.white30),
                 floatingLabelBehavior: FloatingLabelBehavior.always,
               ),
               initialValue: _formData.motherName,
@@ -298,9 +300,10 @@ class _FormScreenState extends State<FormScreen> {
               name: 'aadhar_number',
               decoration: const InputDecoration(
                 labelText: 'Aadhar Number ',
-                hintText: 'XXXX-XXXX-XXXX',
-                helperText: 'Helper text',
+                hintText: 'eg. 0123-4567-1234',
+                //helperText: 'Helper text',
                 border: OutlineInputBorder(),
+                hintStyle: TextStyle(color: Colors.white30),
                 floatingLabelBehavior: FloatingLabelBehavior.always,
               ),
               initialValue: _formData.aadharNumber,
@@ -309,111 +312,107 @@ class _FormScreenState extends State<FormScreen> {
             ),
           ),
           Padding(
-            padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: ((constraints.maxWidth * 0.5) -
-                          (kDefaultPadding * 0.5)),
-                      child: FormBuilderTextField(
-                        name: 'samgara_id',
-                        decoration: const InputDecoration(
-                          labelText: 'Samagra ID',
-                          hintText: '123456789',
-                          helperText: 'Helper text',
-                          border: OutlineInputBorder(),
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                        ),
-                        initialValue: _formData.samgaraId,
-                        validator: FormBuilderValidators.required(),
-                        onSaved: (value) =>
-                            (_formData.samgaraId = value ?? ''),
-                      ),
+        padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
+        child:  Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: kDefaultPadding),
+                  child: FormBuilderTextField(
+                    name: 'samgara_id',
+                    decoration: const InputDecoration(
+                      labelText: 'Samagra ID',
+                      hintText: 'eg. 123456789',
+                      //helperText: 'Helper text',
+                      border: OutlineInputBorder(),
+                      hintStyle: TextStyle(color: Colors.white30),
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
                     ),
-                    const SizedBox(width: kDefaultPadding),
-                    SizedBox(
-                      width: ((constraints.maxWidth * 0.5) -
-                          (kDefaultPadding * 0.5)),
-                      child: FormBuilderTextField(
-                        name: 'family_id',
-                        decoration: const InputDecoration(
-                          labelText: 'Family ID',
-                          hintText: '1234556',
-                          helperText: 'Helper text',
-                          border: OutlineInputBorder(),
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                        ),
-                        initialValue: _formData.familyId,
-                        validator: FormBuilderValidators.required(),
-                        onSaved: (value) => (_formData.familyId = value ?? ''),
-                      ),
+                    initialValue: _formData.samgaraId,
+                    validator: FormBuilderValidators.required(),
+                    onSaved: (value) => (_formData.samgaraId = value ?? ''),
+                  ),
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: kDefaultPadding),
+                  child: FormBuilderTextField(
+                    name: 'family_id',
+                    decoration: const InputDecoration(
+                      labelText: 'Family ID',
+                      hintText: 'eg. 1234556',
+                      //helperText: 'Helper text',
+                      border: OutlineInputBorder(),
+                      hintStyle: TextStyle(color: Colors.white30),
+                      floatingLabelBehavior: FloatingLabelBehavior.always,
                     ),
-                  ],
-                );
-              },
-            ),
-          ),
+                    initialValue: _formData.familyId,
+                    validator: FormBuilderValidators.required(),
+                    onSaved: (value) => (_formData.familyId = value ?? ''),
+                  ),
+                ),
+              ),
+            ],
+          ),),
           Padding(
-            padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: ((constraints.maxWidth * 0.5) -
-                          (kDefaultPadding * 0.5)),
-                      child: FormBuilderRadioGroup(
-                        name: 'gender',
-                        orientation: OptionsOrientation.vertical,
-                        decoration: const InputDecoration(
-                          labelText: 'Gender',
-                          border: OutlineInputBorder(),
-                        ),
-                        initialValue: _formData.gender,
-                        options: const [
-                          FormBuilderFieldOption(
-                              value: 'Male', child: Text('Male')),
-                          FormBuilderFieldOption(
-                              value: 'Female', child: Text('Female')),
-                          FormBuilderFieldOption(
-                              value: 'Other', child: Text('Other')),
-                        ],
-                        onSaved: (value) => (_formData.gender = value ?? ''),
-                      ),
+        padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
+        child:   Row(
+            children: [
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(right: kDefaultPadding),
+                  child: FormBuilderRadioGroup(
+                    name: 'gender',
+                    orientation: OptionsOrientation.vertical,
+                    decoration: const InputDecoration(
+                      labelText: 'Gender',
+                      border: OutlineInputBorder(),
+                      hintStyle: TextStyle(color: Colors.white30),
                     ),
-                    const SizedBox(width: kDefaultPadding),
-                    SizedBox(
-                      width: ((constraints.maxWidth * 0.5) -
-                          (kDefaultPadding * 0.5)),
-                      child: FormBuilderRadioGroup(
-                        name: 'medium',
-                        wrapSpacing: kDefaultPadding,
-                        decoration: const InputDecoration(
-                          labelText: 'Medium',
-                          border: OutlineInputBorder(),
-                        ),
-                        initialValue: _formData.medium,
-                        options: const [
-                          FormBuilderFieldOption(
-                              value: 'English', child: Text('English')),
-                          FormBuilderFieldOption(
-                              value: 'Hindi', child: Text('Hindi')),
-                          // FormBuilderFieldOption(value: 'Item 3', child: Text('Item 3')),
-                          // FormBuilderFieldOption(value: 'Item 4', child: Text('Item 4')),
-                          // FormBuilderFieldOption(value: 'Item 5', child: Text('Item 5')),
-                        ],
-                        onSaved: (value) => (_formData.medium = value ?? ''),
-                      ),
+                    initialValue: _formData.gender,
+                    validator: FormBuilderValidators.required(),
+                    options: const [
+                      FormBuilderFieldOption(
+                          value: 'Male', child: Text('Male')),
+                      FormBuilderFieldOption(
+                          value: 'Female', child: Text('Female')),
+                      FormBuilderFieldOption(
+                          value: 'Other', child: Text('Other')),
+                    ],
+                    onSaved: (value) => (_formData.gender = value ?? ''),
+                  ),
+
+                ),
+              ),
+              Expanded(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: kDefaultPadding),
+                  child:FormBuilderRadioGroup(
+                    name: 'medium',
+                    wrapSpacing: kDefaultPadding,
+                    decoration: const InputDecoration(
+                      labelText: 'Medium',
+                      border: OutlineInputBorder(),
+                      hintStyle: TextStyle(color: Colors.white30),
                     ),
-                  ],
-                );
-              },
-            ),
-          ),
+                    initialValue: _formData.medium,
+                    validator: FormBuilderValidators.required(),
+                    options: const [
+                      FormBuilderFieldOption(
+                          value: 'English', child: Text('English')),
+                      FormBuilderFieldOption(
+                          value: 'Hindi', child: Text('Hindi')),
+                      // FormBuilderFieldOption(value: 'Item 3', child: Text('Item 3')),
+                      // FormBuilderFieldOption(value: 'Item 4', child: Text('Item 4')),
+                      // FormBuilderFieldOption(value: 'Item 5', child: Text('Item 5')),
+                    ],
+                    onSaved: (value) => (_formData.medium = value ?? ''),
+                  ),
+                ),
+              ),
+            ],
+          ),),
           Padding(
             padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
             child: Theme(
@@ -426,10 +425,16 @@ class _FormScreenState extends State<FormScreen> {
 
                 decoration: const InputDecoration(
                   labelText: 'Class',
+                  hintText: 'Select Class',
                   border: OutlineInputBorder(),
+
+                  //labelStyle: TextStyle(color: Colors.white30),
                   hoverColor: Colors.transparent,
                   focusColor: Colors.transparent,
+                  hintStyle: TextStyle(color: Colors.white30),
+                  floatingLabelBehavior: FloatingLabelBehavior.always,
                 ),
+
                 //allowClear: true,
                 focusColor: Colors.transparent,
                 //hint: const Text('Select Class'),
@@ -443,39 +448,6 @@ class _FormScreenState extends State<FormScreen> {
               ),
             ),
           ),
-          // Padding(
-          //   padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-          //   child: FormBuilderFilterChip(
-          //     name: 'subject',
-          //     spacing: kDefaultPadding * 0.5,
-          //     runSpacing: kDefaultPadding * 0.5,
-          //     selectedColor: appColorScheme.warning,
-          //     decoration: const InputDecoration(
-          //       labelText: 'Subject',
-          //       border: OutlineInputBorder(),
-          //     ),
-          //     //initialValue:_formData.subject,
-          //     options: const [
-          //       FormBuilderChipOption(value: 'Hindi', child: Text('Hindi')),
-          //       FormBuilderChipOption(value: 'English', child: Text('English')),
-          //       FormBuilderChipOption(value: 'Math', child: Text('Math')),
-          //       FormBuilderChipOption(
-          //           value: 'Sanskrit', child: Text('Sanskrit')),
-          //       FormBuilderChipOption(value: 'Science', child: Text('Science')),
-          //       FormBuilderChipOption(
-          //           value: 'Social Science', child: Text('Social Science')),
-          //       FormBuilderChipOption(
-          //           value: 'Computer', child: Text('Computer')),
-          //       FormBuilderChipOption(value: 'EVS', child: Text('EVS')),
-          //       FormBuilderChipOption(value: 'Biology', child: Text('Biology')),
-          //       FormBuilderChipOption(value: 'Physics', child: Text('Physics')),
-          //       FormBuilderChipOption(
-          //           value: 'Chemistry', child: Text('Chemistry')),
-          //     ],
-          //     onSaved: (value) => (_formData.subject = value ?? ''),
-          //   ),
-          // ),
-
           Padding(
             padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
             child: FormBuilderDateTimePicker(
@@ -484,176 +456,188 @@ class _FormScreenState extends State<FormScreen> {
               inputType: InputType.date,
               decoration: const InputDecoration(
                 labelText: 'Date Of Birth',
+                hintText: 'eg. DD/MM/YYYY',
                 border: OutlineInputBorder(),
+                //labelStyle: TextStyle(color: Colors.white30),
+                hintStyle: TextStyle(color: Colors.white30),
+                hoverColor: Colors.transparent,
+                focusColor: Colors.transparent,
+                floatingLabelBehavior: FloatingLabelBehavior.always,
               ),
-              // initialDate:DateTime.now(),
-              // initialValue:_formData.dob.isEmpty?,
-              // initialValue: _formData.dob.toString().isEmpty?DateTime.parse(_formData.dob.toString()):,
+
+              validator: FormBuilderValidators.required(),
+              format:DateFormat("dd/MM/yyyy") ,
+            // initialValue: _formData.dob.toString().isEmpty?DateTime.parse(_formData.dob.toString()):,
               onSaved: (value) =>
-                  _formData.dob = DateFormat("yyyy-MM-dd").format(value!),
+                  _formData.dob = DateFormat("dd/MM/yyyy").format(value!),
             ),
           ),
           Padding(
             padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: ((constraints.maxWidth * 0.5) -
-                          (kDefaultPadding * 0.5)),
-                      child: FormBuilderTextField(
-                        name: 'mobile_number',
-                        decoration: const InputDecoration(
-                          labelText: 'Mobile Number',
-                          hintText: '123456789',
-                          helperText: 'Helper text',
-                          border: OutlineInputBorder(),
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                        ),
-                        initialValue: _formData.mobileNumber,
-                        validator: FormBuilderValidators.required(),
-                        onSaved: (value) =>
-                            (_formData.mobileNumber = value ?? ''),
+            child:   Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: kDefaultPadding),
+                    child:   FormBuilderTextField(
+                      name: 'mobile_number',
+                      decoration: const InputDecoration(
+                        labelText: 'Mobile Number',
+                        hintText: 'eg. +91-123456789',
+                        //helperText: 'Helper text',
+                        border: OutlineInputBorder(),
+                        hintStyle: TextStyle(color: Colors.white30),
+                        floatingLabelBehavior: FloatingLabelBehavior.always,
                       ),
+                      initialValue: _formData.mobileNumber,
+                      validator: FormBuilderValidators.compose([
+                        FormBuilderValidators.required(),
+                        FormBuilderValidators.numeric(),
+                        FormBuilderValidators.minLength(10),
+                        FormBuilderValidators.maxLength(12),
+                      ]),
+                     
+                      onSaved: (value) =>
+                      (_formData.mobileNumber = value ?? ''),
                     ),
-                    const SizedBox(width: kDefaultPadding),
-                    SizedBox(
-                      width: ((constraints.maxWidth * 0.5) -
-                          (kDefaultPadding * 0.5)),
-                      child: FormBuilderTextField(
-                        name: 'mobile_number2',
-                        decoration: const InputDecoration(
-                          labelText: 'Parent Contact ',
-                          hintText: '1234556',
-                          helperText: 'Helper text',
-                          border: OutlineInputBorder(),
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                        ),
-                        initialValue: _formData.mobileNumber2,
-                        validator: FormBuilderValidators.required(),
-                        onSaved: (value) =>
-                            (_formData.mobileNumber2 = value ?? ''),
+
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: kDefaultPadding),
+                    child: FormBuilderTextField(
+                      name: 'mobile_number2',
+                      decoration: const InputDecoration(
+                        labelText: 'Parent Contact ',
+                        hintText: 'eg. +91-123456789',
+                        //helperText: 'Helper text',
+                        border: OutlineInputBorder(),
+                        hintStyle: TextStyle(color: Colors.white30),
+                        floatingLabelBehavior: FloatingLabelBehavior.always,
                       ),
+                      initialValue: _formData.mobileNumber2,
+                      validator: FormBuilderValidators.required(),
+                      onSaved: (value) =>
+                      (_formData.mobileNumber2 = value ?? ''),
                     ),
-                  ],
-                );
-              },
-            ),
-          ),
+                  ),
+                ),
+              ],
+            ),),
           Padding(
             padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-            child: FormBuilderTextField(
+            child:
+            FormBuilderTextField(
               name: 'email_id',
               decoration: const InputDecoration(
                 labelText: 'Email ID',
-                hintText: 'example@abc.com',
-                helperText: 'Helper text',
+                hintText: 'eg. example@abc.com',
+                //helperText: 'Helper text',
                 border: OutlineInputBorder(),
+                hintStyle: TextStyle(color: Colors.white30),
                 floatingLabelBehavior: FloatingLabelBehavior.always,
               ),
               initialValue: _formData.emailId,
-              validator: FormBuilderValidators.required(),
+              validator: FormBuilderValidators.compose([
+                FormBuilderValidators.required(),
+                FormBuilderValidators.email(),
+              ]),
               onSaved: (value) => (_formData.emailId = value ?? ''),
             ),
           ),
           Padding(
             padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: ((constraints.maxWidth * 0.5) -
-                          (kDefaultPadding * 0.5)),
-                      child: FormBuilderTextField(
-                        name: 'bank_name',
-                        decoration: const InputDecoration(
-                          labelText: 'Bank Name',
-                          hintText: 'xyz Bank',
-                          helperText: 'Helper text',
-                          border: OutlineInputBorder(),
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                        ),
-                        initialValue: _formData.bankName,
-                        validator: FormBuilderValidators.required(),
-                        onSaved: (value) => (_formData.bankName = value ?? ''),
+            child:   Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: kDefaultPadding),
+                    child:  FormBuilderTextField(
+                      name: 'bank_name',
+                      decoration: const InputDecoration(
+                        labelText: 'Bank Name',
+                        hintText: 'eg. State Bank India',
+                        //helperText: 'Helper text',
+                        border: OutlineInputBorder(),
+                        hintStyle: TextStyle(color: Colors.white30),
+                        floatingLabelBehavior: FloatingLabelBehavior.always,
                       ),
+                      initialValue: _formData.bankName,
+                      validator: FormBuilderValidators.required(),
+                      onSaved: (value) => (_formData.bankName = value ?? ''),
                     ),
-                    const SizedBox(width: kDefaultPadding),
-                    SizedBox(
-                      width: ((constraints.maxWidth * 0.5) -
-                          (kDefaultPadding * 0.5)),
-                      child: FormBuilderTextField(
-                        name: 'account_holder_name',
-                        decoration: const InputDecoration(
-                          labelText: 'Account Holder Name ',
-                          hintText: 'abc',
-                          helperText: 'Helper text',
-                          border: OutlineInputBorder(),
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                        ),
-                        initialValue: _formData.accountHolderName,
-                        validator: FormBuilderValidators.required(),
-                        onSaved: (value) =>
-                            (_formData.accountHolderName = value ?? ''),
+
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: kDefaultPadding),
+                    child: FormBuilderTextField(
+                      name: 'account_holder_name',
+                      decoration: const InputDecoration(
+                        labelText: 'Account Holder Name ',
+                        hintText: 'eg. John Smith',
+                        //helperText: 'Helper text',
+                        border: OutlineInputBorder(),
+                        hintStyle: TextStyle(color: Colors.white30),
+                        floatingLabelBehavior: FloatingLabelBehavior.always,
                       ),
+                      initialValue: _formData.accountHolderName,
+                      validator: FormBuilderValidators.required(),
+                      onSaved: (value) =>
+                      (_formData.accountHolderName = value ?? ''),
                     ),
-                  ],
-                );
-              },
-            ),
-          ),
+                  ),
+                ),
+              ],
+            ),),
           Padding(
             padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                return Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    SizedBox(
-                      width: ((constraints.maxWidth * 0.5) -
-                          (kDefaultPadding * 0.5)),
-                      child: FormBuilderTextField(
-                        name: 'account_number',
-                        decoration: const InputDecoration(
-                          labelText: 'Account Number',
-                          hintText: '**********',
-                          helperText: 'Helper text',
-                          border: OutlineInputBorder(),
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                        ),
-                        initialValue: _formData.aadharNumber,
-                        validator: FormBuilderValidators.required(),
-                        onSaved: (value) =>
-                            (_formData.aadharNumber = value ?? ''),
+            child:   Row(
+              children: [
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: kDefaultPadding),
+                    child:    FormBuilderTextField(
+                      name: 'account_number',
+                      decoration: const InputDecoration(
+                        labelText: 'Account Number',
+                        hintText: 'eg. 1234********',
+                        //helperText: 'Helper text',
+                        border: OutlineInputBorder(),
+                        hintStyle: TextStyle(color: Colors.white30),
+                        floatingLabelBehavior: FloatingLabelBehavior.always,
                       ),
+                      initialValue: _formData.aadharNumber,
+                      validator: FormBuilderValidators.required(),
+                      onSaved: (value) =>
+                      (_formData.aadharNumber = value ?? ''),
                     ),
-                    const SizedBox(width: kDefaultPadding),
-                    SizedBox(
-                      width: ((constraints.maxWidth * 0.5) -
-                          (kDefaultPadding * 0.5)),
-                      child: FormBuilderTextField(
-                        name: 'ifsc_code',
-                        decoration: const InputDecoration(
-                          labelText: 'IFSC Code ',
-                          hintText: 'XYZ45577',
-                          helperText: 'Helper text',
-                          border: OutlineInputBorder(),
-                          floatingLabelBehavior: FloatingLabelBehavior.always,
-                        ),
-                        initialValue: _formData.ifscCode,
-                        validator: FormBuilderValidators.required(),
-                        onSaved: (value) => (_formData.ifscCode = value ?? ''),
+
+                  ),
+                ),
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(left: kDefaultPadding),
+                    child:  FormBuilderTextField(
+                      name: 'ifsc_code',
+                      decoration: const InputDecoration(
+                        labelText: 'IFSC Code ',
+                        hintText: 'eg. XYZ45577',
+                        //helperText: 'Helper text',
+                        border: OutlineInputBorder(),
+                        hintStyle: TextStyle(color: Colors.white30),
+                        floatingLabelBehavior: FloatingLabelBehavior.always,
                       ),
+                      initialValue: _formData.ifscCode,
+                      validator: FormBuilderValidators.required(),
+                      onSaved: (value) => (_formData.ifscCode = value ?? ''),
                     ),
-                  ],
-                );
-              },
-            ),
-          ),
+                  ),
+                ),
+              ],
+            ),),
           Padding(
             padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
             child: FormBuilderTextField(
@@ -661,9 +645,10 @@ class _FormScreenState extends State<FormScreen> {
               decoration: const InputDecoration(
                 labelText: 'Address',
                 hintText:
-                    'House No,City/Village,District,Block,Post,Pin code,Landmark  ',
-                helperText: 'Helper text',
+                    'eg. Pundaliknagar Rd, Besides Medi-Arts Hospital, Gajanan Maharaj Mandir Area  ',
+                //helperText: 'Helper text',
                 border: OutlineInputBorder(),
+                hintStyle: TextStyle(color: Colors.white30),
                 floatingLabelBehavior: FloatingLabelBehavior.always,
               ),
               initialValue: _formData.address,
@@ -671,166 +656,57 @@ class _FormScreenState extends State<FormScreen> {
               onSaved: (value) => (_formData.address = value ?? ''),
             ),
           ),
-          // Padding(
-          //   padding: const EdgeInsets.only(
-          //       bottom: kDefaultPadding * 2.0),
-          //   child: FormBuilderAssetPicker(
-          //     name: 'file_picker',
-          //     allowedExtensions: const ['jpg', 'png', 'pdf'],
-          //     allowMultiple: true,
-          //     maxFiles: 5,
-          //     type: FileType.custom,
-          //     decoration: const InputDecoration(
-          //       labelText: 'Document',
-          //       border: OutlineInputBorder(),
-          //     ),
-          //     selector: Row(
-          //       children: const [
-          //         Icon(Icons.file_upload),
-          //         Text('Upload'),
-          //       ],
-          //     ),
-          //   ),
-          // ),
 
           Padding(
             padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-            child: FormBuilderCheckbox(
-              name: 'accept_terms',
-              initialValue: false,
-              onChanged: (value) {},
-              title: RichText(
-                text: TextSpan(
-                  children: [
-                    TextSpan(
-                      text: 'I have read and agree to the ',
-                      style: TextStyle(
-                        color: themeData.colorScheme.onSurface,
-                      ),
-                    ),
-                    const TextSpan(
-                      text: 'Terms and Conditions',
-                      style: TextStyle(color: Colors.blue),
-                    ),
-                  ],
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                Visibility(
+                  visible: widget.id.isEmpty ,
+                  child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minWidth: 100, // Set the minimum width here
+                    maxWidth: 200, // Set the maximum width here
+                  ),
+                  child: ElevatedButton(
+                    style: themeData.extension<AppButtonTheme>()!.infoElevated,
+                    onPressed: () async {
+                      _formKey.currentState!.reset();
+                    },
+                    child: const Text( "Clear"),
+                  ),
+                ),),
+                const SizedBox(width: 8.0),
+                ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minWidth: 100, // Set the minimum width here
+                    maxWidth: 200, // Set the maximum width here
+                  ),
+                  child: ElevatedButton(
+                    style: themeData.extension<AppButtonTheme>()!.primaryElevated,
+                    onPressed: () async {
+                      if (_formKey.currentState?.validate() ?? false) {
+                        _formKey.currentState!.save();
+                        var res = await apiService.addStudent(_formData.toJson());
+                        print(res?.statusCode);
+                        if (res?.statusCode == 201) {
+                          _showDialog(context, DialogType.SUCCES);
+                        }
+                        //GoRouter.of(context).go(RouteUri.pdf-screen);
+                      } else {
+                        // Validation failed.
+                      }
+                    },
+                    child: Text(widget.id.isEmpty ? lang.submit : "Update"),
+                  ),
                 ),
-              ),
-              validator: FormBuilderValidators.equal(
-                true,
-                errorText: 'You must accept terms and conditions to continue',
-              ),
+              ],
             ),
           ),
-          // Padding(
-          //   padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-          //   child: FormBuilderChoiceChip(
-          //     name: 'choice_chip',
-          //     spacing: kDefaultPadding * 0.5,
-          //     runSpacing: kDefaultPadding * 0.5,
-          //     selectedColor: appColorScheme.warning,
-          //     decoration: const InputDecoration(
-          //       labelText: 'Single Choice Chip',
-          //       border: OutlineInputBorder(),
-          //     ),
-          //     options: const [
-          //       FormBuilderChipOption(value: 'Item 1', child: Text('Item 1')),
-          //       FormBuilderChipOption(value: 'Item 2', child: Text('Item 2')),
-          //       FormBuilderChipOption(value: 'Item 3', child: Text('Item 3')),
-          //       FormBuilderChipOption(value: 'Item 4', child: Text('Item 4')),
-          //       FormBuilderChipOption(value: 'Item 5', child: Text('Item 5')),
-          //     ],
-          //   ),
-          // ),
-          // Padding(
-          //   padding: const EdgeInsets.only(
-          //       bottom: kDefaultPadding * 2.0),
-          //   child: FormBuilderSwitch(
-          //     name: 'switch',
-          //     title: const Text('Receive marketing email'),
-          //     decoration: const InputDecoration(
-          //       labelText: 'Switch',
-          //       border: OutlineInputBorder(),
-          //       hoverColor: Colors.amber,
-          //       focusColor: Colors.transparent,
-          //     ),
-          //   ),
-          // ),
-          // Padding(
-          //   padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-          //   child: FormBuilderDateTimePicker(
-          //     name: 'time_picker',
-          //     onChanged: (value) {},
-          //     inputType: InputType.time,
-          //     decoration: const InputDecoration(
-          //       labelText: 'Time Picker',
-          //       border: OutlineInputBorder(),
-          //     ),
-          //     initialTime: const TimeOfDay(hour: 8, minute: 0),
-          //     initialValue: DateTime.now(),
-          //   ),
-          // ),
-          // Padding(
-          //   padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-          //   child: FormBuilderDateRangePicker(
-          //     name: 'date_range',
-          //     firstDate: DateTime(1970),
-          //     lastDate: DateTime(2030),
-          //     format: DateFormat('yyyy-MM-dd'),
-          //     onChanged: (value) {},
-          //     decoration: const InputDecoration(
-          //       labelText: 'Date Range Picker',
-          //       hintText: 'Hint text',
-          //       border: OutlineInputBorder(),
-          //     ),
-          //   ),
-          // ),
-          // Padding(
-          //   padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-          //   child: FormBuilderSlider(
-          //     name: 'slider',
-          //     validator: FormBuilderValidators.compose([
-          //       FormBuilderValidators.min(6),
-          //     ]),
-          //     onChanged: (value) {},
-          //     min: 0.0,
-          //     max: 10.0,
-          //     initialValue: 7.0,
-          //     divisions: 20,
-          //     activeColor: appColorScheme.primary,
-          //     inactiveColor: appColorScheme.primary.withOpacity(0.3),
-          //     decoration: const InputDecoration(
-          //       labelText: 'Slider',
-          //       border: OutlineInputBorder(),
-          //     ),
-          //   ),
-          // ),
 
-          Align(
-            alignment: Alignment.centerRight,
-            child: SizedBox(
-              height: 36.0,
-              width: 100.0,
-              child: ElevatedButton(
-                style: themeData.extension<AppButtonTheme>()!.primaryElevated,
-                onPressed: () async {
-                  if (_formKey.currentState?.validate() ?? false) {
-                    // Validation passed.
-                    _formKey.currentState!.save();
-                    var res = await apiService.addStudent(_formData.toJson());
-                    print(res?.statusCode);
-                    if (res?.statusCode == 201) {
-                      _showDialog(context, DialogType.SUCCES);
 
-                    }
-                    //GoRouter.of(context).go(RouteUri.pdf-screen);
-                  } else {
-                    // Validation failed.
-                  }
-                },
-                child: Text(widget.id.isEmpty ? lang.submit : "Update"),
-              ),
-            ),
-          ),
+
         ],
       ),
     );

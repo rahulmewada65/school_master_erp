@@ -180,6 +180,19 @@ class _LoginScreenState extends State<LoginScreen> {
                                     FloatingLabelBehavior.always,
                               ),
                               enableSuggestions: false,
+                              onSubmitted: (value) {
+                                _formData.username = value ?? '';
+                                if (_formKey.currentState!.validate()) {
+                                  _formKey.currentState!.save();
+                                  _doLoginAsync(
+                                    userDataProvider:
+                                        context.read<UserDataProvider>(),
+                                    onSuccess: () => _onLoginSuccess(context),
+                                    onError: (message) =>
+                                        _onLoginError(context, message),
+                                  );
+                                }
+                              },
                               validator: FormBuilderValidators.required(),
                               onSaved: (value) =>
                                   (_formData.username = value ?? ''),
@@ -200,6 +213,19 @@ class _LoginScreenState extends State<LoginScreen> {
                               ),
                               enableSuggestions: false,
                               obscureText: true,
+                              onSubmitted: (value) {
+                                _formData.password = value ?? '';
+                                if (_formKey.currentState!.validate()) {
+                                  _formKey.currentState!.save();
+                                  _doLoginAsync(
+                                    userDataProvider:
+                                        context.read<UserDataProvider>(),
+                                    onSuccess: () => _onLoginSuccess(context),
+                                    onError: (message) =>
+                                        _onLoginError(context, message),
+                                  );
+                                }
+                              },
                               validator: FormBuilderValidators.required(),
                               onSaved: (value) =>
                                   (_formData.password = value ?? ''),
@@ -232,7 +258,8 @@ class _LoginScreenState extends State<LoginScreen> {
                           SizedBox(
                             height: 40.0,
                             width: double.infinity,
-                            child: TextButton(
+                            child:
+                            TextButton(
                               style: themeData
                                   .extension<AppButtonTheme>()!
                                   .secondaryText,

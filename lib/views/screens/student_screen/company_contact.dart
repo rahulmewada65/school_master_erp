@@ -30,29 +30,9 @@ class CompanyContact {
             child: Text(rollNumber),
           );
         })),
-        DataCell(Text(firstName)),
-        DataCell(Text(lastName)),
-        DataCell(Builder(builder: (context) {
-          return Row(mainAxisSize: MainAxisSize.min, children: [
-            SizedBox(
-              height: 20.0,
-              child: Padding(
-                padding: const EdgeInsets.only(right: kDefaultPadding / 2),
-                child: SizedBox(
-                  height: 20.0,
-                  child: IconButton(
-                    icon: const Icon(Icons.whatsapp),
-                    color: Colors.green,
-                    tooltip: 'Edit',
-                    onPressed: () => {
-                      {operation(id.toString(), context, "EDIT")}
-                    },
-                  ),
-                ),
-              ),
-            ),
-          ]);
-        })),
+        DataCell(Text("$firstName $lastName")),
+       // DataCell(Text(lastName))
+        // ,
         DataCell(Builder(builder: (context) {
           return TextButton(
             onPressed: () => {
@@ -66,6 +46,23 @@ class CompanyContact {
             return Row(
               mainAxisSize: MainAxisSize.min,
               children: [
+                SizedBox(
+                  height: 20.0,
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: kDefaultPadding / 2),
+                    child: SizedBox(
+                      height: 20.0,
+                      child: IconButton(
+                        icon: const Icon(Icons.whatsapp),
+                        color: Colors.green,
+                        tooltip: 'WhatsApp',
+                        onPressed: () => {
+                          {operation(id.toString(), context, "EDIT")}
+                        },
+                      ),
+                    ),
+                  ),
+                ),
                 SizedBox(
                   height: 20.0,
                   child: Padding(
