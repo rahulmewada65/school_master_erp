@@ -1088,12 +1088,11 @@ class _ClassProfileScreenState extends State<ClassProfileScreen> {
                                         final double dataTableWidth = max(
                                             kScreenWidthMd,
                                             constraints.maxWidth);
-
                                         return  SingleChildScrollView(
                                           controller: _scrollController3,
                                           scrollDirection: Axis.horizontal,
                                           child: SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
+                                            scrollDirection: Axis.vertical,
                                             controller: _scrollController6,
                                             child: SizedBox(
                                               width: dataTableWidth,
@@ -1133,16 +1132,16 @@ class _ClassProfileScreenState extends State<ClassProfileScreen> {
                                                     ),
                                                     const DataColumn(
                                                         label: Text(
-                                                            'Subject Name')),
+                                                            'Subject')),
                                                     const DataColumn(
                                                         label: Text(
                                                             'Subject Type')),
                                                     const DataColumn(
                                                         label: Text(
-                                                            'Minimum Marks')),
+                                                            'Mini. Marks')),
                                                     const DataColumn(
                                                         label: Text(
-                                                            'Maximum Marks')),
+                                                            'Max. Marks')),
                                                     const DataColumn(
                                                       label: Text('Action'),
                                                     ),
@@ -1268,8 +1267,9 @@ class ExampleSource extends AdvancedDataTableSource<ClassProfileModal> {
     classId = id;
   }
 
-  final storage = const FlutterSecureStorage();
   ApiService apiService = ApiService();
+  final ClassProfileApiService _classStudentApiService = ClassProfileApiService();
+
   @override
   DataRow? getRow(int index) =>
       lastDetails!.rows[index].getRow(selectedRow, selectedIds, doOperations);
@@ -1323,10 +1323,7 @@ class ExampleSource extends AdvancedDataTableSource<ClassProfileModal> {
       AndroidOptions getAndroidOptions() => const AndroidOptions(
             encryptedSharedPreferences: true,
           );
-      await storage.write(
-          key: "student_id", value: id, aOptions: getAndroidOptions()
-          //iOptions: _getIOSOptions(),
-          );
+
       GoRouter.of(context).go('${RouteUri.form}?id=$id');
       // print('EDIT');
     }
@@ -1346,6 +1343,7 @@ class ExampleSource extends AdvancedDataTableSource<ClassProfileModal> {
   }
 
   Future<RemoteDataSourceDetails<ClassProfileModal>> getNextPage(NextPageRequest pageRequest) async {
+    try {
     final queryParameter = <String, dynamic>{
       'offset': pageRequest.offset.toString(),
       'pageSize': pageRequest.pageSize.toString(),
@@ -1353,9 +1351,21 @@ class ExampleSource extends AdvancedDataTableSource<ClassProfileModal> {
       'sortAsc': ((pageRequest.sortAscending ?? true) ? 1 : 0).toString(),
       if (lastSearchTerm.isNotEmpty) 'companyFilter': lastSearchTerm,
     };
-    final response = await apiService.getStudentList(queryParameter); // Call your API here with query parameters
-    final data = jsonDecode(response.body);
-    final List<ClassProfileModal> paginatedData = (data['rows'] as List<dynamic>)
+    final response1 = await apiService.getStudentList(queryParameter);
+    final response2 = await _classStudentApiService.getClassStudentById(classId);
+    final data1 = jsonDecode(response1.body)['rows'];
+    final data2 = jsonDecode(response2.body)['assignStudents'];
+     Set<int> idsInData2 = Set.from(data2.map((item) => item["id"]));
+    List<dynamic> result;
+if(data2.length>0){
+     result = data1.where((item1) =>
+       !idsInData2.contains(item1["id"])).toList();
+     }else{
+       result = data1;
+     }
+
+    var length = result.length;
+    final List<ClassProfileModal> paginatedData = (result)
         .map((json) => ClassProfileModal.fromJson(json as Map<String, dynamic>))
         .toList();
     final List<ClassProfileModal> paginatedList = paginatedData
@@ -1363,10 +1373,15 @@ class ExampleSource extends AdvancedDataTableSource<ClassProfileModal> {
         .take(pageRequest.pageSize)
         .toList();
     return RemoteDataSourceDetails(
-      int.parse(data['totalRows'].toString()),
+      int.parse(length.toString()),
       paginatedList,
       filteredRows: lastSearchTerm.isNotEmpty ? paginatedData.length : null,
     );
+    } catch (e) {
+      // Handle exceptions or errors here
+      print("Error in getNextPage: $e");
+      return RemoteDataSourceDetails(0, []);
+    }
   }
 
 }
