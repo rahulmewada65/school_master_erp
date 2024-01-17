@@ -1,25 +1,28 @@
 import 'dart:convert';
-import 'dart:io';
-
-import 'dart:math';
 import 'dart:html' as html;
+import 'dart:math';
 import 'package:awesome_dialog/awesome_dialog.dart';
+
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_form_builder/flutter_form_builder.dart';
-import 'package:form_builder_validators/form_builder_validators.dart';
 import 'package:http/http.dart';
+import 'package:http/http.dart' as http;
+import 'package:pdf/pdf.dart';
+import 'package:flutter_svg/svg.dart';
+import 'package:form_builder_validators/form_builder_validators.dart';
+import 'package:printing/printing.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
-import 'package:pdf/pdf.dart';
-import 'package:printing/printing.dart';
 import 'package:school_master_erp/services/profile_service.dart';
 import 'package:school_master_erp/views/widgets/card_elements.dart';
 import 'package:pdf/widgets.dart' as pw;
 import '../../../app_router.dart';
 import '../../../constants/dimens.dart';
-// import '../../../generated/l10n.dart';
+import '../../../helpers/constants.dart';
 import '../../../services/api_service.dart';
+import '../../../services/document_api_service.dart';
 import '../../../services/fees_api_service.dart';
 import '../../../theme/theme_extensions/app_button_theme.dart';
 import '../../../theme/theme_extensions/app_color_scheme.dart';
@@ -41,13 +44,19 @@ class _StudentScreen extends State<StudentScreen> {
   final ProfileApiService profileApiService = ProfileApiService();
   final FeesApiService apiServiceFee = FeesApiService();
   final _dataTableHorizontalScrollController = ScrollController();
+  final DocumentApiService documentApiService = DocumentApiService();
   int _currentStep = 0;
   StepperType stepperType = StepperType.horizontal;
   Future<bool>? _future;
   Future<bool>? _future2;
   var studentData;
   List dropdowonOption = [];
-
+  XFile? _imageFile;
+  final ImagePicker imgpicker = ImagePicker();
+  List<XFile>? imagefiles;
+  List<Map<String, dynamic>> selectedFiles = [];
+  var clickFiles = {};
+  final ImagePicker _picker = ImagePicker();
   List stuData = [];
   List submitFeeDataFromApi = [];
   List selectedElement = [];
@@ -60,14 +69,16 @@ class _StudentScreen extends State<StudentScreen> {
   var _visibility6 = false;
   var _visibility7 = false;
   var _visibility8 = false;
-  late File imgFile;
+  var _visibility9 = false;
   final imgPicker = ImagePicker();
   var selectedData;
   int discountAmountVar = 0;
+  int selectedButtonIndex = 0;
   DateTime currentDate = DateTime.now();
   var _currentSession;
   var studentDataFee = [];
   var sbmittedFeeData = {};
+  var selectExcel;
   var total;
 
   // Future<bool> _getDataAsync() async {
@@ -84,6 +95,8 @@ class _StudentScreen extends State<StudentScreen> {
   initState() {
     super.initState();
     setSession();
+    _getDataAsync();
+    _getDataAsync2();
   }
 
   @override
@@ -478,12 +491,6 @@ class _StudentScreen extends State<StudentScreen> {
         });
   }
 
-  // File? imgFile; // Assuming imgFile is a File or File? variable
-
-  XFile? _imageFile;
-
-  final ImagePicker _picker = ImagePicker();
-
   Future<void> _getImageFromGallery() async {
     final XFile? selectedImage =
         await _picker.pickImage(source: ImageSource.gallery);
@@ -502,28 +509,8 @@ class _StudentScreen extends State<StudentScreen> {
     Navigator.of(context).pop();
   }
 
-  // Future<void> _getImageFromCameraWeb() async {
-  //   print("okk");
-  //   final html.FileUploadInputElement input = html.FileUploadInputElement();
-  //   input.accept = 'image/*';
-  //   input.click();
-  //
-  //   input.onChange.listen((event) {
-  //     final html.File? file = input.files?.first;
-  //     if (file != null) {
-  //       // Handle the selected file here
-  //       // You can use this 'file' to display or process the image
-  //
-  //       // setState(() {
-  //       //   _imageFile = file.name as XFile?;
-  //       // });
-  //       print('Selected file: ${file.name}');
-  //     }
-  //   });
-  // }
-
   Future<bool> _getDataAsync() async {
-    selectSession("${currentDate.year}-${currentDate.year + 1}");
+    selectSession("${currentDate.year - 1}-${currentDate.year}");
     Future<Response> response = getStudentDetails();
     if (widget.id.isNotEmpty) {
       await Future.delayed(const Duration(seconds: 1), () {
@@ -1361,7 +1348,6 @@ class _StudentScreen extends State<StudentScreen> {
       },
       btnCancelOnPress: () {},
     );
-
     dialog.show();
   }
 
@@ -1378,1364 +1364,1122 @@ class _StudentScreen extends State<StudentScreen> {
       },
       btnCancelOnPress: () {},
     );
-
     dialog.show();
   }
 
-  int selectedButtonIndex = -1;
+  // Future<void> openImages() async {
+  //   try {
+  //     // FilePickerResult? result = await FilePicker.platform.pickFiles(
+  //     //   allowMultiple: true, // Enable multiple file selection
+  //     // );
+  //     final XFile? takenImage2 = await _picker.pickImage(source: ImageSource.camera);
+  //     if (takenImage2 != null) {
+  //      // List<Map<String, dynamic>> filesData = [];
+  //       // for (var file in result.files) {
+  //       //   Uint8List? fileBytes = file.bytes;
+  //       //
+  //       //   // if( file.extension=="pdf"){
+  //       //   //   if (file.bytes != null) {
+  //       //   //     await Printing.layoutPdf(onLayout: (PdfPageFormat format) async => file.bytes!);
+  //       //   //   }
+  //       //   // }
+  //       //
+  //       //   if (fileBytes != null) {
+  //       //     Map<String, dynamic> fileData = {
+  //       //       'fileName': file.name ?? '',
+  //       //       'fileType': file.extension ?? '',
+  //       //       'fileContent': fileBytes,
+  //       //       'fileBytes': file.bytes,
+  //       //     };
+  //       //     filesData.add(fileData);
+  //       //   }
+  //       // }
+  //       // setState(() {
+  //       //   selectedFiles = filesData;
+  //       //   clickFiles = filesData[0];
+  //       // });
+  //       var studentId = widget.id;
+  //       // var fileName = filesData[0]['fileName'];
+  //       // var fileBytes = filesData[0]['fileBytes'];
+  //       //
+  //       // final res = await documentApiService.uploadDocument(
+  //       //     studentId: studentId, filesData: clickFiles);
+  //
+  //       var url = Uri.parse('${Constants.BASE_URL}/upload-document');
+  //       var request = html.MultipartRequest('POST', url);
+  //       request.fields['studentId'] = studentId;
+  //
+  //       var multipartFile = await  MultipartFile.fromPath(
+  //         'files',
+  //         takenImage2.path,
+  //       );
+  //       request.files.add(multipartFile);
+  //     }
+  //   } catch (e) {
+  //     print('Error while picking files: $e');
+  //   }
+  // }
+
+  Future<void> openImages() async {
+    try {
+      var studentId = widget.id;
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        allowMultiple: true, // Enable multiple file selection
+      );
+
+      if (result != null && result.files.isNotEmpty) {
+        var url = Uri.parse('${Constants.BASE_URL}/upload-document');
+        var request = http.MultipartRequest('POST', url);
+        // Add studentId field to the request
+        request.fields.addAll({'studentId': studentId});
+        List<Map<String, dynamic>> filesData = [];
+        for (var file in result.files) {
+          Uint8List? fileBytes = file.bytes;
+          if (fileBytes != null) {
+            Map<String, dynamic> fileData = {
+              'fileName': file.name ?? '',
+              'fileType': file.extension ?? '',
+              'fileContent': String.fromCharCodes(file.bytes!),
+              'fileBytes': file.bytes,
+            };
+            filesData.add(fileData);
+          }
+        }
+        setState(() {
+          selectedFiles = filesData;
+          clickFiles = filesData[0];
+        });
+        for (var file in result.files) {
+          if (file.bytes != null) {
+            Uint8List bytes = file.bytes!;
+            List<int> byteList = bytes.toList();
+            // Add each file to the request
+            request.files.add(http.MultipartFile.fromBytes(
+              'files',
+              byteList,
+              filename: file.name,
+            ));
+          } else {
+            print('File "${file.name}" has no bytes');
+          }
+        }
+        try {
+          var streamedResponse = await request.send();
+          var response = await http.Response.fromStream(streamedResponse);
+
+          if (response.statusCode == 200) {
+            print('Files uploaded successfully');
+          } else {
+            print('Failed to upload files. Status code: ${response.statusCode}');
+          }
+        } catch (e) {
+          print('Error during request: $e');
+        }
+      } else {
+        // User canceled the file picker or no files were selected
+        print('File picking canceled or no files selected');
+      }
+    } catch (e) {
+      print('Error while picking files: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
-    final themeData = Theme.of(context);
-    final appButtonTheme = themeData.extension<AppButtonTheme>()!;
-    return PortalMasterLayout(
-      selectedMenuUri: RouteUri.crud,
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-          Card(
-            clipBehavior: Clip.antiAlias,
-            child:  Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  for (int index = 0; index < 4; index++)
-        Column(
-        mainAxisAlignment: MainAxisAlignment.start,
-        children: [
-                    SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.19,
-                      height: 45,
-                      child:
-                    TextButton(
-                      onPressed: () {
-                        setState(() {
-                          selectedButtonIndex = index;
-                        });
-                      },
-                      style:selectedButtonIndex == index ? appButtonTheme.successText : appButtonTheme.secondaryText,
-                      child: Text( index == 0 ? 'Tab 0' : index == 1 ? 'Tab1': index == 2 ? 'Tab2': index == 3 ? 'Tab3':""),
-                    ),),
-                  Container(
-                    color: selectedButtonIndex == index ? Colors.blueGrey : Colors.white, // Set the color of the Container
-                    child: SizedBox(
-                      width: MediaQuery.of(context).size.width * 0.19,
-                      height: 2,
-                    ),
-                  ),])
-                    // ElevatedButton(
-                    //   onPressed: () {
-                    //     setState(() {
-                    //       selectedButtonIndex = index;
-                    //     });
-                    //   },
-                    //   style: ElevatedButton.styleFrom(
-                    //     minimumSize: const Size(140.0, 50.0), // Set the minimum width and height
-                    //     // You can customize other button properties here as needed
-                    //   ),
-                    //   //style: buttonStyle,
-                    //   child: Text('Tab $index'),
-                    // ),
-                ],
-              ),
-            ),
-
-          if (selectedButtonIndex == 1) ...[
-            Card(
-              clipBehavior: Clip.antiAlias,
-              child: SingleChildScrollView(
-                child: _content(context),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Widget _content(BuildContext context) {
-    // final lang = Lang.of(context);
-    final themeData = Theme.of(context);
-    final appButtonTheme = themeData.extension<AppButtonTheme>()!;
-    return FormBuilder(
-      key: _formKey,
-      autovalidateMode: AutovalidateMode.disabled,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const CardHeader(
-            title: "Student Profile",
-          ),
-          LayoutBuilder(
-            builder: (context, constraints) {
-              return Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: [
-                  CardBody(
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: <Widget>[
-                        // const Align(alignment: Alignment.topLeft, child: Text("left")),
-                        // const Align(alignment: Alignment.centerRight, child: Text("right")),
-
-                        Text("Roll Number          :   ${_formData.rollNumber}",
-                            textAlign: TextAlign.start),
-                        const SizedBox(
-                          height: 15,
-                        ),
-                        Text("Student Name       :   ${_formData.student_name}",
-                            textAlign: TextAlign.start),
-                        const SizedBox(
-                          height: 15,
-                        ),
-                        Text("Father Name         :   ${_formData.father_name}",
-                            textAlign: TextAlign.left),
-                        const SizedBox(
-                          height: 15,
-                        ),
-                        Text("Mother Name        :   ${_formData.mother_name}",
-                            textAlign: TextAlign.left),
-                        const SizedBox(
-                          height: 15,
-                        ),
-                        Text("Date Of Birth         :   ${_formData.dob}",
-                            textAlign: TextAlign.left),
-                      ],
-                    ),
-                  ),
-                  Align(
-                    alignment: Alignment.bottomRight,
-                    child: Stack(
-                      children: [
-                        CircleAvatar(
-                          backgroundColor: Colors.white,
-                          backgroundImage: _imageFile != null
-                              ? NetworkImage(
-                                  _imageFile!.path,
-                                )
-                              : null,
-                          // Use NetworkImage for network URLs
-                          radius: 60.0,
-                        ),
-                        Positioned(
-                          top: 0.0,
-                          right: 0.0,
-                          child: SizedBox(
-                            height: 40.0,
-                            width: 40.0,
-                            child: ElevatedButton(
-                              onPressed: () {
-                                showOptionsDialog(
-                                    context); // Show options to pick or capture image
-                              },
-                              style: ElevatedButton.styleFrom(
-                                shape: const CircleBorder(),
-                                padding: EdgeInsets.zero,
-                              ),
-                              child: const Icon(
-                                Icons.edit_rounded,
-                                size: 20.0,
-                              ),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  )
-                ],
-              );
-            },
-          ),
-          const CardHeader(
-            title: "",
-          ),
-          const CardHeader(
-            title: "Address Details",
-          ),
-          Container(
-            alignment: Alignment.centerLeft,
-            child: Stack(
-              children: [
-                CardBody(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text("Address                :   ${_formData.address}",
-                          textAlign: TextAlign.start),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const CardHeader(
-            title: "",
-          ),
-          const CardHeader(
-            title: "Contact Details",
-          ),
-          Container(
-            alignment: Alignment.centerLeft,
-            child: Stack(
-              children: [
-                CardBody(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                          "Mobile Number 1        :   ${_formData.mobile_number}",
-                          textAlign: TextAlign.start),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Text(
-                          "Mobile Number 2        :   ${_formData.mobile_number2}",
-                          textAlign: TextAlign.start),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Text(
-                          "Email ID                        :   ${_formData.email_id}",
-                          textAlign: TextAlign.start),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const CardHeader(
-            title: "",
-          ),
-          const CardHeader(
-            title: "Bank Details",
-          ),
-          Container(
-            alignment: Alignment.centerLeft,
-            child: Stack(
-              children: [
-                CardBody(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                          "Bank Name                      :    ${_formData.bank_name}",
-                          textAlign: TextAlign.start),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Text(
-                          "Account Number            :   ${_formData.account_number}",
-                          textAlign: TextAlign.start),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Text(
-                          " Account Holder Name  :   ${_formData.account_holder_name}",
-                          textAlign: TextAlign.left),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Text(
-                          "IFSC Code                        :   ${_formData.ifsc_code}",
-                          textAlign: TextAlign.left),
-                    ],
-                  ),
-                )
-              ],
-            ),
-          ),
-          const CardHeader(
-            title: "",
-          ),
-          const CardHeader(
-            title: "Other Details",
-          ),
-          Container(
-            alignment: Alignment.centerLeft,
-            child: Stack(
-              children: [
-                CardBody(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: <Widget>[
-                      Text(
-                          "Aadhaar Number           :   ${_formData.aadhar_number}",
-                          textAlign: TextAlign.start),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Text(
-                          "Samagra ID                    :   ${_formData.samgara_id}",
-                          textAlign: TextAlign.start),
-                      const SizedBox(
-                        height: 15,
-                      ),
-                      Text(
-                          "Family ID                        :   ${_formData.family_id}",
-                          textAlign: TextAlign.start),
-                    ],
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const CardHeader(
-            title: "",
-          ),
-          Align(
-            alignment: Alignment.center,
-            child: Padding(
-              padding: const EdgeInsets.all(kDefaultPadding),
-              child: SizedBox(
-                height: 40.0,
-                width: 120.0,
-                child: TextButton(
-                  onPressed: () {
-                    _printScreen();
-                  },
-                  style: appButtonTheme.infoText,
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Padding(
-                        padding: EdgeInsets.only(right: kTextPadding),
-                        child: Icon(Icons.print_rounded),
-                      ),
-                      Text('Print'),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _content2(BuildContext context) {
-    // final lang = Lang.of(context);
     final themeData = Theme.of(context);
     final appButtonTheme = themeData.extension<AppButtonTheme>()!;
     final appColorScheme = Theme.of(context).extension<AppColorScheme>()!;
     final appDataTableTheme = Theme.of(context).extension<AppDataTableTheme>()!;
 
-    return Column(
-      children: <Widget>[
-        Padding(
-          padding: const EdgeInsets.only(bottom: kDefaultPadding),
-          child: Card(
-            clipBehavior: Clip.antiAlias,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const CardHeader(
-                  title: "Fees Section ",
-                  //   showDivider: false,
-                ),
-                // const Text(
-                //   "Select Session",
-                // ),
-                CardBody(
-                  child: Container(
-                      alignment: Alignment.center,
-                      child: FormBuilderDropdown(
-                          name: 'class',
-                          icon: const Icon(Icons.keyboard_arrow_down),
-                          iconEnabledColor: appColorScheme.primary,
-                          decoration: const InputDecoration(
-                            labelText: 'Select Session',
-                            border: UnderlineInputBorder(),
-                            hoverColor: Colors.transparent,
-                            focusColor: Colors.transparent,
-                          ),
-                          allowClear: true,
-                          focusColor: Colors.transparent,
-                          //hint: const Text('Select Class'),
-                          initialValue:
-                              "${currentDate.year}-${currentDate.year + 1}",
-                          // validator: FormBuilderValidators.required(),
-                          // onChanged: ,
-                          // onTap: ,
-                          items: dropdowonOption
-                              .map((e) =>
-                                  DropdownMenuItem(value: e, child: Text(e)))
-                              .toList(),
-                          onChanged: (value) => (selectSession(value)))),
-                ),
-              ],
-            ),
-          ),
-        ), // showing Always
-        Visibility(
-            visible: _visibility1,
-            child: Padding(
-                padding: const EdgeInsets.only(bottom: kDefaultPadding),
-                child: Card(
-                    clipBehavior: Clip.antiAlias,
-                    child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const CardHeader(
-                            title: "Select Structure",
-                          ),
-                          CardBody(
-                              child: Container(
-                            alignment: Alignment.centerLeft,
-                            child: FormBuilderDropdown(
-                                name: 'class',
-                                decoration: const InputDecoration(
-                                  labelText: 'Select a structure',
-                                  border: OutlineInputBorder(),
-                                  hoverColor: Colors.transparent,
-                                  focusColor: Colors.transparent,
-                                ),
-                                allowClear: true,
-                                focusColor: Colors.transparent,
-                                items: stuData
-                                    .map((e) => DropdownMenuItem(
-                                        value: e,
-                                        child: Text(e["structureName"])))
-                                    .toList(),
-                                onChanged: (value) => (selectStructure(value))),
-                          ))
-                        ])))), //it's for when data not available in selected session when click on create button
-
-        Visibility(
-          visible: _visibility2,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: kDefaultPadding),
-            child: Card(
+    return PortalMasterLayout(
+      selectedMenuUri: RouteUri.crud,
+      body: SingleChildScrollView(
+        // Wrapping the whole body in a SingleChildScrollView
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Card(
               clipBehavior: Clip.antiAlias,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  CardHeader(
-                    title:
-                        "Selected Structure Name :     ${selectedData?["structureName"]} ",
-                  ),
-                  CardBody(
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: const [
-                          Text("ID ", textAlign: TextAlign.start),
-                          Text(" Name", textAlign: TextAlign.start),
-                          Text(" Amount", textAlign: TextAlign.start),
-                          SizedBox(
-                            height: 10,
-                            width: 50,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const Divider(),
-                  for (int i = 0; i < selectedElement.length; i++)
-                    CardBody(
-                      child: Container(
-                        alignment: Alignment.centerLeft,
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                  for (int index = 0; index < 4; index++)
+                    LayoutBuilder(builder: (context, constraints) {
+                      return Column(
+                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                           children: [
-                            Text(" ${selectedElement[i]["id"]}",
-                                textAlign: TextAlign.start),
-                            const Text("Rahul", textAlign: TextAlign.start),
-                            Text(" ${selectedElement[i]["amount"]}",
-                                textAlign: TextAlign.start),
-                            const SizedBox(
-                              height: 15,
-                              width: 55,
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  const Divider(),
-                  CardBody(
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text("Total Amount ",
-                              textAlign: TextAlign.start),
-                          const Text(" ", textAlign: TextAlign.start),
-                          Text(" ${selectedData?["totalAmount"]}",
-                              textAlign: TextAlign.start),
-                          const SizedBox(
-                            height: 10,
-                            width: 50,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const Divider(),
-                  CardBody(
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text("Discount Amount ",
-                              textAlign: TextAlign.start),
-                          const Text(" ", textAlign: TextAlign.start),
-                          const SizedBox(
-                            height: 10,
-                            width: 40,
-                          ),
-                          SizedBox(
-                            width: (kDefaultPadding * 12),
-                            height: 40,
-                            child: FormBuilderTextField(
-                              keyboardType:
-                                  const TextInputType.numberWithOptions(
-                                signed: true,
-                                decimal: true,
+                            SizedBox(
+                              width: MediaQuery.of(context).size.width * 0.17,
+                              height: 45,
+                              child: TextButton(
+                                onPressed: () {
+                                  setState(() {
+                                    selectedButtonIndex = index;
+                                  });
+                                },
+                                style: selectedButtonIndex == index
+                                    ? appButtonTheme.primaryText
+                                    : appButtonTheme.secondaryText,
+                                child: Text(index == 0
+                                    ? 'Student Details'
+                                    : index == 1
+                                        ? 'Student Fee Details'
+                                        : index == 2
+                                            ? 'Academic Details'
+                                            : index == 3
+                                                ? 'Sudent Document'
+                                                : ""),
                               ),
-                              inputFormatters: [
-                                FilteringTextInputFormatter.allow(
-                                    RegExp(r'^-?\d*.?\d*')),
-                              ],
-                              name: 'mobile_number',
-                              decoration: const InputDecoration(
-                                labelText: 'Discount Amount',
-                                border: OutlineInputBorder(),
-                                floatingLabelBehavior:
-                                    FloatingLabelBehavior.auto,
+                            ),
+                            Container(
+                              color: selectedButtonIndex == index
+                                  ? Colors.blue
+                                  : Colors
+                                      .white, // Set the color of the Container
+                              child: SizedBox(
+                                width: MediaQuery.of(context).size.width * 0.17,
+                                height: 2,
                               ),
-                              onChanged: (value) => (discountAmount(
-                                  value, selectedData?["totalAmount"])),
                             ),
-                          ),
-                          const SizedBox(
-                            height: 10,
-                            width: 40,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  const Divider(),
-                  CardBody(
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          const Text("Final Amount ",
-                              textAlign: TextAlign.start),
-                          const Text(" ", textAlign: TextAlign.start),
-                          const Text(" ", textAlign: TextAlign.start),
-                          Text(
-                              " ${discountAmountVar != 0 ? discountAmountVar : selectedData?["totalAmount"]}",
-                              textAlign: TextAlign.start),
-                          Container(
-                            alignment: Alignment.centerLeft,
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                TextButton(
-                                  onPressed: () {
-                                    saveData(context);
-                                  },
-                                  // style: appButtonTheme.infoText,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: const [
-                                      Padding(
-                                        padding: EdgeInsets.only(
-                                            right: kTextPadding),
-                                        child: Icon(Icons.save),
-                                      ),
-                                      Text('Save'),
-                                    ],
-                                  ),
-                                ),
-                                TextButton(
-                                  onPressed: () {
-                                    _printScreen();
-                                  },
-                                  // style: appButtonTheme.infoText,
-                                  child: Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: const [
-                                      Padding(
-                                        padding: EdgeInsets.only(
-                                            right: kTextPadding),
-                                        child: Icon(Icons.print_rounded),
-                                      ),
-                                      Text('Print'),
-                                    ],
-                                  ),
-                                )
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
+                          ]);
+                    })
                 ],
               ),
             ),
-          ),
-        ),
+            const SizedBox(
+              height: 15,
+            ),
+            if (selectedButtonIndex == 0) ...[
+              SingleChildScrollView(
+                // Wrap the section you want to make scrollable
+                child: Padding(
+                    padding: const EdgeInsets.all(kDefaultPadding),
+                    child: Card(
+                      clipBehavior: Clip.antiAlias,
+                      child: Padding(
+                          padding: const EdgeInsets.only(
+                              left: kDefaultPadding,
+                              right: kDefaultPadding,
+                              top: kDefaultPadding),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const CardHeader(
+                                title: "Student Profile",
+                              ),
+                              LayoutBuilder(
+                                builder: (context, constraints) {
+                                  return SingleChildScrollView(
+                                      child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      CardBody(
+                                        child: Column(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: <Widget>[
+                                            // const Align(alignment: Alignment.topLeft, child: Text("left")),
+                                            // const Align(alignment: Alignment.centerRight, child: Text("right")),
 
-        Visibility(
-            visible: _visibility3,
-            child: Padding(
-                padding: const EdgeInsets.only(bottom: kDefaultPadding),
-                child: Card(
-                    clipBehavior: Clip.antiAlias,
-                    child: CardBody(
-                        child: Container(
-                            alignment: Alignment.centerLeft,
-                            child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                children: <Widget>[
-                                  const Text(
-                                      "No Fee Data Available Please Create a Fee Structure",
-                                      textAlign: TextAlign.center),
-                                  TextButton(
-                                    onPressed: () {
-                                      create();
-                                    },
-                                    //style: appButtonTheme.infoText,
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: const [
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                              right: kTextPadding),
-                                          child: Icon(Icons.create_new_folder),
+                                            Text(
+                                                "Roll Number          :   ${_formData.rollNumber}",
+                                                textAlign: TextAlign.start),
+                                            const SizedBox(
+                                              height: 15,
+                                            ),
+                                            Text(
+                                                "Student Name       :   ${_formData.student_name}",
+                                                textAlign: TextAlign.start),
+                                            const SizedBox(
+                                              height: 15,
+                                            ),
+                                            Text(
+                                                "Father Name         :   ${_formData.father_name}",
+                                                textAlign: TextAlign.left),
+                                            const SizedBox(
+                                              height: 15,
+                                            ),
+                                            Text(
+                                                "Mother Name        :   ${_formData.mother_name}",
+                                                textAlign: TextAlign.left),
+                                            const SizedBox(
+                                              height: 15,
+                                            ),
+                                            Text(
+                                                "Date Of Birth         :   ${_formData.dob}",
+                                                textAlign: TextAlign.left),
+                                          ],
                                         ),
-                                        Text('Create'),
-                                      ],
-                                    ),
-                                  ),
-                                ])))))),
-        // Visibility(
-        //   visible: _visibility4,
-        //   child: Padding(
-        //     padding: const EdgeInsets.only(bottom: kDefaultPadding),
-        //     child: Card(
-        //       clipBehavior: Clip.antiAlias,
-        //       child: Column(
-        //         crossAxisAlignment: CrossAxisAlignment.start,
-        //         children: [
-        //           CardBody(
-        //             child: Container(
-        //               alignment: Alignment.centerLeft,
-        //               child: Row(
-        //                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        //                 crossAxisAlignment: CrossAxisAlignment.start,
-        //                 children: [
-        //                   Column(
-        //                       crossAxisAlignment: CrossAxisAlignment.start,
-        //                       children: [
-        //                         Text(
-        //                             " Structure Name :  ${_visibility4 ? studentDataFee[0]["structureName"] : ''} ",
-        //                             textAlign: TextAlign.start),
-        //                         Container(
-        //                           height: 10,
-        //                         ),
-        //                         Text(
-        //                             "Session:  ${_visibility4 ? studentDataFee[0]["sessionYear"] : ''} ",
-        //                             textAlign: TextAlign.end),
-        //                       ]),
-        //                   TextButton(
-        //                     onPressed: () {
-        //                       setState(() {
-        //                         _visibility6 = !_visibility6;
-        //                       });
-        //                     },
-        //                     //style: appButtonTheme.infoText,
-        //                     child: Row(
-        //                       mainAxisSize: MainAxisSize.min,
-        //                       children: [
-        //                         Padding(
-        //                           padding: const EdgeInsets.only(
-        //                               right: kTextPadding),
-        //                           child: _visibility6
-        //                               ? const Icon(Icons.keyboard_arrow_up)
-        //                               : const Icon(Icons.keyboard_arrow_down),
-        //                         ),
-        //                         //Text('Create'),
-        //                       ],
-        //                     ),
-        //                   ),
-        //                 ],
-        //               ),
-        //             ),
-        //           ),
-        //           Visibility(
-        //               visible: _visibility6,
-        //               child: Column(
-        //                   // crossAxisAlignment: CrossAxisAlignment.start,
-        //                   children: [
-        //                     const Divider(),
-        //                     CardBody(
-        //                       child: Container(
-        //                         alignment: Alignment.centerLeft,
-        //                         child: Row(
-        //                           mainAxisAlignment:
-        //                               MainAxisAlignment.spaceBetween,
-        //                           crossAxisAlignment: CrossAxisAlignment.start,
-        //                           children: const [
-        //                             Text("ID ", textAlign: TextAlign.start),
-        //                             Text(" Name", textAlign: TextAlign.start),
-        //                             Text(" Amount", textAlign: TextAlign.start),
-        //                             SizedBox(
-        //                               height: 10,
-        //                               width: 50,
-        //                             ),
-        //                           ],
-        //                         ),
-        //                       ),
-        //                     ),
-        //                     const Divider(),
-        //                     for (int i = 0; i < selectedElement.length; i++)
-        //                       CardBody(
-        //                         child: Container(
-        //                           alignment: Alignment.centerLeft,
-        //                           child: Row(
-        //                             mainAxisAlignment:
-        //                                 MainAxisAlignment.spaceBetween,
-        //                             crossAxisAlignment:
-        //                                 CrossAxisAlignment.start,
-        //                             children: [
-        //                               Text(
-        //                                   " ${_visibility4 ? selectedElement[i]["id"] : ""}",
-        //                                   textAlign: TextAlign.start),
-        //                               const Text("Rahul",
-        //                                   textAlign: TextAlign.start),
-        //                               Text(
-        //                                   " ${_visibility4 ? selectedElement[i]["amount"] : ''}",
-        //                                   textAlign: TextAlign.start),
-        //                               const SizedBox(
-        //                                 height: 15,
-        //                                 width: 55,
-        //                               ),
-        //                             ],
-        //                           ),
-        //                         ),
-        //                       ),
-        //                     const Divider(),
-        //                     CardBody(
-        //                       child: Container(
-        //                         alignment: Alignment.centerLeft,
-        //                         child: Row(
-        //                           mainAxisAlignment:
-        //                               MainAxisAlignment.spaceBetween,
-        //                           crossAxisAlignment: CrossAxisAlignment.start,
-        //                           children: [
-        //                             const Text("Total Amount ",
-        //                                 textAlign: TextAlign.start),
-        //                             const Text(" ", textAlign: TextAlign.start),
-        //                             Text(
-        //                                 " ${_visibility4 ? studentDataFee[0]["totalAmount"] : ""}",
-        //                                 textAlign: TextAlign.start),
-        //                             const SizedBox(
-        //                               height: 10,
-        //                               width: 50,
-        //                             ),
-        //                           ],
-        //                         ),
-        //                       ),
-        //                     ),
-        //                     const Divider(),
-        //                     CardBody(
-        //                       child: Container(
-        //                         alignment: Alignment.centerLeft,
-        //                         child: Row(
-        //                           mainAxisAlignment:
-        //                               MainAxisAlignment.spaceBetween,
-        //                           crossAxisAlignment: CrossAxisAlignment.start,
-        //                           children: [
-        //                             const Text("Discount Amount ",
-        //                                 textAlign: TextAlign.start),
-        //                             const Text(" ", textAlign: TextAlign.start),
-        //                             Text(
-        //                                 " ${_visibility4 ? studentDataFee[0]["disscount"] : ""}",
-        //                                 textAlign: TextAlign.start),
-        //                             const SizedBox(
-        //                               height: 10,
-        //                               width: 40,
-        //                             ),
-        //                           ],
-        //                         ),
-        //                       ),
-        //                     ),
-        //                     const Divider(),
-        //                     CardBody(
-        //                       child: Container(
-        //                         alignment: Alignment.centerLeft,
-        //                         child: Row(
-        //                           mainAxisAlignment:
-        //                               MainAxisAlignment.spaceBetween,
-        //                           crossAxisAlignment: CrossAxisAlignment.start,
-        //                           children: [
-        //                             const Text("Final Amount ",
-        //                                 textAlign: TextAlign.start),
-        //                             const Text(" ", textAlign: TextAlign.start),
-        //                             const Text(" ", textAlign: TextAlign.start),
-        //                             const Text(" ", textAlign: TextAlign.start),
-        //                             Text(" ${discountAmountVar}",
-        //                                 textAlign: TextAlign.start),
-        //                             Container(
-        //                               alignment: Alignment.centerLeft,
-        //                               child: Row(
-        //                                 mainAxisAlignment:
-        //                                     MainAxisAlignment.spaceBetween,
-        //                                 crossAxisAlignment:
-        //                                     CrossAxisAlignment.start,
-        //                                 children: [
-        //                                   TextButton(
-        //                                     onPressed: () {
-        //                                       remove(context);
-        //                                     },
-        //                                     style: appButtonTheme.errorText,
-        //                                     child: Row(
-        //                                       mainAxisSize: MainAxisSize.min,
-        //                                       children: const [
-        //                                         Padding(
-        //                                           padding: EdgeInsets.only(
-        //                                               right: kTextPadding),
-        //                                           child: Icon(Icons.delete),
-        //                                         ),
-        //                                         Text(""),
-        //                                       ],
-        //                                     ),
-        //                                   ),
-        //                                   TextButton(
-        //                                     onPressed: () {
-        //                                       _printScreen2();
-        //                                     },
-        //                                     style: appButtonTheme.infoText,
-        //                                     child: Row(
-        //                                       mainAxisSize: MainAxisSize.min,
-        //                                       children: const [
-        //                                         Padding(
-        //                                           padding: EdgeInsets.only(
-        //                                               right: kTextPadding),
-        //                                           child:
-        //                                               Icon(Icons.print_rounded),
-        //                                         ),
-        //                                         Text(""),
-        //                                       ],
-        //                                     ),
-        //                                   ),
-        //                                   TextButton(
-        //                                     onPressed: () {
-        //                                       setState(
-        //                                           () => _visibility5 = false);
-        //                                       showOptionsDialog2(context);
-        //                                     },
-        //                                     style: appButtonTheme.primaryText,
-        //                                     child: Row(
-        //                                       mainAxisSize: MainAxisSize.min,
-        //                                       children: const [
-        //                                         Padding(
-        //                                           padding: EdgeInsets.only(
-        //                                               right: kTextPadding),
-        //                                           child: Icon(
-        //                                               Icons.payments_outlined),
-        //                                         ),
-        //                                         Text(""),
-        //                                       ],
-        //                                     ),
-        //                                   )
-        //                                 ],
-        //                               ),
-        //                             ),
-        //                           ],
-        //                         ),
-        //                       ),
-        //                     )
-        //                   ])),
-        //         ],
-        //       ),
-        //     ),
-        //   ),
-        // ), //it's for when data available in selected session
-        Visibility(
-          visible: true,
-          // _visibility7,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: kDefaultPadding),
-            child: Card(
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CardBody(
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                    " Structure Name :  ${studentDataFee.isNotEmpty ? studentDataFee[0]["structureName"] : ''}",
-                                    textAlign: TextAlign.start),
-                                Container(
-                                  height: 10,
-                                ),
-                                Text(
-                                    "Session:  ${studentDataFee.isNotEmpty ? studentDataFee[0]["sessionYear"] : ""} ",
-                                    textAlign: TextAlign.end),
-                              ]),
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _visibility6 = !_visibility6;
-                              });
-                            },
-                            //style: appButtonTheme.infoText,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      right: kTextPadding),
-                                  child: _visibility6
-                                      ? const Icon(Icons.keyboard_arrow_up)
-                                      : const Icon(Icons.keyboard_arrow_down),
-                                ),
-                                //Text('Create'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Visibility(
-                    visible: _visibility6,
-                    child: _visibility4
-                        ? Padding(
-                            padding: const EdgeInsets.only(bottom: 0),
-                            child: Card(
-                              clipBehavior: Clip.antiAlias,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // CardHeader(
-                                  //   title: lang.recentOrders(2),
-                                  //   showDivider: false,
-                                  // ),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: LayoutBuilder(
-                                      builder: (context, constraints) {
-                                        final double dataTableWidth = max(
-                                            kScreenWidthMd,
-                                            constraints.maxWidth);
-                                        return Scrollbar(
-                                          controller:
-                                              _dataTableHorizontalScrollController,
-                                          thumbVisibility: true,
-                                          trackVisibility: true,
-                                          child: SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            controller:
-                                                _dataTableHorizontalScrollController,
-                                            child: SizedBox(
-                                              width: dataTableWidth,
-                                              child: Theme(
-                                                data: themeData.copyWith(
-                                                  cardTheme: appDataTableTheme
-                                                      .cardTheme,
-                                                  dataTableTheme:
-                                                      appDataTableTheme
-                                                          .dataTableThemeData,
-                                                ),
-                                                child: DataTable(
-                                                  showCheckboxColumn: true,
-                                                  showBottomBorder: true,
-                                                  columns: const [
-                                                    DataColumn(
-                                                        label: Text('Id '),
-                                                        numeric: true),
-                                                    DataColumn(
-                                                        label: Text(
-                                                            'Description '),
-                                                        numeric: true),
-                                                    DataColumn(
-                                                        label: Text('Amount'),
-                                                        numeric: true),
-                                                    DataColumn(
-                                                        label:
-                                                            Text('         '),
-                                                        numeric: true),
-                                                    DataColumn(
-                                                        label:
-                                                            Text('         '),
-                                                        numeric: true)
-                                                  ],
-                                                  rows: List.generate(
-                                                      selectedElement.length,
-                                                      (index) {
-                                                    return DataRow.byIndex(
-                                                      index: index,
-                                                      cells: [
-                                                        DataCell(Text(
-                                                            "#${index + 1}")),
-                                                        DataCell(Text(
-                                                            "${selectedElement.isNotEmpty ? selectedElement[index]["decription"] : ''}")),
-                                                        const DataCell(Text(
-                                                            "            ")),
-                                                        DataCell(Text(
-                                                          "${selectedElement.isNotEmpty ? selectedElement[index]["amount"] : ''}",
-                                                          textAlign:
-                                                              TextAlign.start,
-                                                        )),
-                                                        const DataCell(Text(
-                                                            "            ")),
-                                                      ],
-                                                    );
-                                                  }),
+                                      ),
+                                      Align(
+                                        alignment: Alignment.bottomRight,
+                                        child: Stack(
+                                          children: [
+                                            CircleAvatar(
+                                              backgroundColor: Colors.white,
+                                              backgroundImage:
+                                                  _imageFile != null
+                                                      ? NetworkImage(
+                                                          _imageFile!.path,
+                                                        )
+                                                      : null,
+                                              // Use NetworkImage for network URLs
+                                              radius: 60.0,
+                                            ),
+                                            Positioned(
+                                              top: 0.0,
+                                              right: 0.0,
+                                              child: SizedBox(
+                                                height: 40.0,
+                                                width: 40.0,
+                                                child: ElevatedButton(
+                                                  onPressed: () {
+                                                    showOptionsDialog(
+                                                        context); // Show options to pick or capture image
+                                                  },
+                                                  style:
+                                                      ElevatedButton.styleFrom(
+                                                    shape: const CircleBorder(),
+                                                    padding: EdgeInsets.zero,
+                                                  ),
+                                                  child: const Icon(
+                                                    Icons.edit_rounded,
+                                                    size: 20.0,
+                                                  ),
                                                 ),
                                               ),
                                             ),
+                                          ],
+                                        ),
+                                      )
+                                    ],
+                                  ));
+                                },
+                              ),
+                              const CardHeader(
+                                title: "",
+                              ),
+                              const CardHeader(
+                                title: "Address Details",
+                              ),
+                              Container(
+                                alignment: Alignment.centerLeft,
+                                child: Stack(
+                                  children: [
+                                    CardBody(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Text(
+                                              "Address                :   ${_formData.address}",
+                                              textAlign: TextAlign.start),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const CardHeader(
+                                title: "",
+                              ),
+                              const CardHeader(
+                                title: "Contact Details",
+                              ),
+                              Container(
+                                alignment: Alignment.centerLeft,
+                                child: Stack(
+                                  children: [
+                                    CardBody(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Text(
+                                              "Mobile Number 1        :   ${_formData.mobile_number}",
+                                              textAlign: TextAlign.start),
+                                          const SizedBox(
+                                            height: 15,
                                           ),
-                                        );
+                                          Text(
+                                              "Mobile Number 2        :   ${_formData.mobile_number2}",
+                                              textAlign: TextAlign.start),
+                                          const SizedBox(
+                                            height: 15,
+                                          ),
+                                          Text(
+                                              "Email ID                        :   ${_formData.email_id}",
+                                              textAlign: TextAlign.start),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const CardHeader(
+                                title: "",
+                              ),
+                              const CardHeader(
+                                title: "Bank Details",
+                              ),
+                              Container(
+                                alignment: Alignment.centerLeft,
+                                child: Stack(
+                                  children: [
+                                    CardBody(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Text(
+                                              "Bank Name                      :    ${_formData.bank_name}",
+                                              textAlign: TextAlign.start),
+                                          const SizedBox(
+                                            height: 15,
+                                          ),
+                                          Text(
+                                              "Account Number            :   ${_formData.account_number}",
+                                              textAlign: TextAlign.start),
+                                          const SizedBox(
+                                            height: 15,
+                                          ),
+                                          Text(
+                                              " Account Holder Name  :   ${_formData.account_holder_name}",
+                                              textAlign: TextAlign.left),
+                                          const SizedBox(
+                                            height: 15,
+                                          ),
+                                          Text(
+                                              "IFSC Code                        :   ${_formData.ifsc_code}",
+                                              textAlign: TextAlign.left),
+                                        ],
+                                      ),
+                                    )
+                                  ],
+                                ),
+                              ),
+                              const CardHeader(
+                                title: "",
+                              ),
+                              const CardHeader(
+                                title: "Other Details",
+                              ),
+                              Container(
+                                alignment: Alignment.centerLeft,
+                                child: Stack(
+                                  children: [
+                                    CardBody(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: <Widget>[
+                                          Text(
+                                              "Aadhaar Number           :   ${_formData.aadhar_number}",
+                                              textAlign: TextAlign.start),
+                                          const SizedBox(
+                                            height: 15,
+                                          ),
+                                          Text(
+                                              "Samagra ID                    :   ${_formData.samgara_id}",
+                                              textAlign: TextAlign.start),
+                                          const SizedBox(
+                                            height: 15,
+                                          ),
+                                          Text(
+                                              "Family ID                        :   ${_formData.family_id}",
+                                              textAlign: TextAlign.start),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const CardHeader(
+                                title: "",
+                              ),
+                              Align(
+                                alignment: Alignment.topCenter,
+                                child: Padding(
+                                  padding:
+                                      const EdgeInsets.all(kDefaultPadding),
+                                  child: SizedBox(
+                                    height: 40.0,
+                                    width: 120.0,
+                                    child: TextButton(
+                                      onPressed: () {
+                                        _printScreen();
                                       },
+                                      style: appButtonTheme.infoText,
+                                      child: Row(
+                                        mainAxisSize: MainAxisSize.min,
+                                        children: const [
+                                          Padding(
+                                            padding: EdgeInsets.only(
+                                                right: kTextPadding),
+                                            child: Icon(Icons.print_rounded),
+                                          ),
+                                          Text('Print'),
+                                        ],
+                                      ),
                                     ),
                                   ),
-                                  const Text("   "),
-                                  Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: <Widget>[
-                                        const Text("Total  Amount :  "),
-                                        Text(
-                                            " ${studentDataFee.isNotEmpty ? studentDataFee[0]["totalAmount"] : ''}"),
-                                      ]),
-                                  const Text(""),
-                                  Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: <Widget>[
-                                        const Text(" Discounted Amount : "),
-                                        Text(
-                                            " ${studentDataFee.isNotEmpty ? studentDataFee[0]["disscount"] : ""}")
-                                      ]),
-                                  const Text(""),
-                                  Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: <Widget>[
-                                        const Text(" Final Amount : "),
-                                        Text("  $discountAmountVar")
-                                      ]),
-                                  Container(
-                                      alignment: Alignment.centerLeft,
-                                      child: Row(
+                                ),
+                              )
+                            ],
+                          )),
+                    )),
+              ),
+            ],
+            if (selectedButtonIndex == 1) ...[
+              SingleChildScrollView(
+                // Wrap the section you want to make scrollable
+                child: Padding(
+                  padding: const EdgeInsets.all(kDefaultPadding),
+                  child: Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: Padding(
+                      padding: const EdgeInsets.only(
+                          left: kDefaultPadding,
+                          right: kDefaultPadding,
+                          top: kDefaultPadding),
+                      child: Column(
+                         crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          const SizedBox(
+                            child: Text("Fees Section "),
+                          ),
+                          const Divider(),
+
+                          Container(
+                              alignment: Alignment.center,
+                              child:Row(
+
+                                  children: <Widget>[
+                                    FormBuilderDropdown(
+                                        name: 'class',
+                                        icon: const Icon(
+                                            Icons.keyboard_arrow_down),
+                                        iconEnabledColor:
+                                        appColorScheme.primary,
+                                        decoration: const InputDecoration(
+                                          //labelText: 'Select Session',
+                                          border: OutlineInputBorder(),
+                                          hoverColor: Colors.transparent,
+                                          focusColor: Colors.transparent,
+                                        ),
+                                        allowClear: true,
+                                        focusColor: Colors.transparent,
+                                        //hint: const Text('Select Class'),
+                                        initialValue:
+                                        "${currentDate.year - 1}-${currentDate.year}",
+                                        // validator: FormBuilderValidators.required(),
+                                        // onChanged: ,
+                                        // onTap: ,
+                                        items: dropdowonOption
+                                            .map((e) => DropdownMenuItem(
+                                            value: e, child: Text(e)))
+                                            .toList(),
+                                        onChanged: (value) =>
+                                        (selectSession(value))),
+
+                                    Container(
+                                        alignment: Alignment.centerLeft,
+                                        child: Row(
+                                            mainAxisAlignment:
+                                            MainAxisAlignment
+                                                .spaceBetween,
+                                            children: <Widget>[
+                                              TextButton(
+                                                onPressed: () {
+                                                  create();
+                                                },
+                                                //style: appButtonTheme.infoText,
+                                                child: Row(
+                                                  mainAxisSize:
+                                                  MainAxisSize.min,
+                                                  children: const [
+                                                    Padding(
+                                                      padding:
+                                                      EdgeInsets.only(
+                                                          right:
+                                                          kTextPadding),
+                                                      child: Icon(Icons
+                                                          .create_new_folder),
+                                                    ),
+                                                    Text('Upload/Update'),
+                                                  ],
+                                                ),
+                                              ),
+                                            ])),
+                                  ]),
+
+                            ),
+
+
+                          // Visibility(
+                          //     visible: _visibility1,
+                          //     child: Padding(
+                          //         padding: const EdgeInsets.only(
+                          //             bottom: kDefaultPadding),
+                          //         child: Card(
+                          //             clipBehavior: Clip.antiAlias,
+                          //             child: Column(
+                          //                 crossAxisAlignment:
+                          //                     CrossAxisAlignment.start,
+                          //                 children: [
+                          //                   const CardHeader(
+                          //                     title: "Select Structure",
+                          //                   ),
+                          //                   CardBody(
+                          //                       child: Container(
+                          //                     alignment: Alignment.centerLeft,
+                          //                     child: FormBuilderDropdown(
+                          //                         name: 'class',
+                          //                         decoration:
+                          //                             const InputDecoration(
+                          //                           labelText:
+                          //                               'Select a structure',
+                          //                           border:
+                          //                               OutlineInputBorder(),
+                          //                           hoverColor:
+                          //                               Colors.transparent,
+                          //                           focusColor:
+                          //                               Colors.transparent,
+                          //                         ),
+                          //                         allowClear: true,
+                          //                         focusColor:
+                          //                             Colors.transparent,
+                          //                         items: stuData
+                          //                             .map((e) => DropdownMenuItem(
+                          //                                 value: e,
+                          //                                 child: Text(e[
+                          //                                     "structureName"])))
+                          //                             .toList(),
+                          //                         onChanged: (value) =>
+                          //                             (selectStructure(value))),
+                          //                   ))
+                          //                 ])))), //it's for when data not available in selected session when click on create button
+                          //
+                          // Visibility(
+                          //   visible: _visibility2,
+                          //   child: Padding(
+                          //     padding: const EdgeInsets.only(
+                          //         bottom: kDefaultPadding),
+                          //     child: Card(
+                          //       clipBehavior: Clip.antiAlias,
+                          //       child: Column(
+                          //         crossAxisAlignment: CrossAxisAlignment.start,
+                          //         children: [
+                          //           CardHeader(
+                          //             title:
+                          //                 "Selected Structure Name :     ${selectedData?["structureName"]} ",
+                          //           ),
+                          //           CardBody(
+                          //             child: Container(
+                          //               alignment: Alignment.centerLeft,
+                          //               child: Row(
+                          //                 mainAxisAlignment:
+                          //                     MainAxisAlignment.spaceBetween,
+                          //                 crossAxisAlignment:
+                          //                     CrossAxisAlignment.start,
+                          //                 children: const [
+                          //                   Text("ID ",
+                          //                       textAlign: TextAlign.start),
+                          //                   Text(" Name",
+                          //                       textAlign: TextAlign.start),
+                          //                   Text(" Amount",
+                          //                       textAlign: TextAlign.start),
+                          //                   SizedBox(
+                          //                     height: 10,
+                          //                     width: 50,
+                          //                   ),
+                          //                 ],
+                          //               ),
+                          //             ),
+                          //           ),
+                          //           const Divider(),
+                          //           for (int i = 0;
+                          //               i < selectedElement.length;
+                          //               i++)
+                          //             CardBody(
+                          //               child: Container(
+                          //                 alignment: Alignment.centerLeft,
+                          //                 child: Row(
+                          //                   mainAxisAlignment:
+                          //                       MainAxisAlignment.spaceBetween,
+                          //                   crossAxisAlignment:
+                          //                       CrossAxisAlignment.start,
+                          //                   children: [
+                          //                     Text(
+                          //                         " ${selectedElement[i]["id"]}",
+                          //                         textAlign: TextAlign.start),
+                          //                     const Text("Rahul",
+                          //                         textAlign: TextAlign.start),
+                          //                     Text(
+                          //                         " ${selectedElement[i]["amount"]}",
+                          //                         textAlign: TextAlign.start),
+                          //                     const SizedBox(
+                          //                       height: 15,
+                          //                       width: 55,
+                          //                     ),
+                          //                   ],
+                          //                 ),
+                          //               ),
+                          //             ),
+                          //           const Divider(),
+                          //           CardBody(
+                          //             child: Container(
+                          //               alignment: Alignment.centerLeft,
+                          //               child: Row(
+                          //                 mainAxisAlignment:
+                          //                     MainAxisAlignment.spaceBetween,
+                          //                 crossAxisAlignment:
+                          //                     CrossAxisAlignment.start,
+                          //                 children: [
+                          //                   const Text("Total Amount ",
+                          //                       textAlign: TextAlign.start),
+                          //                   const Text(" ",
+                          //                       textAlign: TextAlign.start),
+                          //                   Text(
+                          //                       " ${selectedData?["totalAmount"]}",
+                          //                       textAlign: TextAlign.start),
+                          //                   const SizedBox(
+                          //                     height: 10,
+                          //                     width: 50,
+                          //                   ),
+                          //                 ],
+                          //               ),
+                          //             ),
+                          //           ),
+                          //           const Divider(),
+                          //           CardBody(
+                          //             child: Container(
+                          //               alignment: Alignment.centerLeft,
+                          //               child: Row(
+                          //                 mainAxisAlignment:
+                          //                     MainAxisAlignment.spaceBetween,
+                          //                 crossAxisAlignment:
+                          //                     CrossAxisAlignment.start,
+                          //                 children: [
+                          //                   const Text("Discount Amount ",
+                          //                       textAlign: TextAlign.start),
+                          //                   const Text(" ",
+                          //                       textAlign: TextAlign.start),
+                          //                   const SizedBox(
+                          //                     height: 10,
+                          //                     width: 40,
+                          //                   ),
+                          //                   SizedBox(
+                          //                     width: (kDefaultPadding * 12),
+                          //                     height: 40,
+                          //                     child: FormBuilderTextField(
+                          //                       keyboardType:
+                          //                           const TextInputType
+                          //                               .numberWithOptions(
+                          //                         signed: true,
+                          //                         decimal: true,
+                          //                       ),
+                          //                       inputFormatters: [
+                          //                         FilteringTextInputFormatter
+                          //                             .allow(RegExp(
+                          //                                 r'^-?\d*.?\d*')),
+                          //                       ],
+                          //                       name: 'mobile_number',
+                          //                       decoration:
+                          //                           const InputDecoration(
+                          //                         labelText: 'Discount Amount',
+                          //                         border: OutlineInputBorder(),
+                          //                         floatingLabelBehavior:
+                          //                             FloatingLabelBehavior
+                          //                                 .auto,
+                          //                       ),
+                          //                       onChanged: (value) =>
+                          //                           (discountAmount(
+                          //                               value,
+                          //                               selectedData?[
+                          //                                   "totalAmount"])),
+                          //                     ),
+                          //                   ),
+                          //                   const SizedBox(
+                          //                     height: 10,
+                          //                     width: 40,
+                          //                   ),
+                          //                 ],
+                          //               ),
+                          //             ),
+                          //           ),
+                          //           const Divider(),
+                          //           CardBody(
+                          //             child: Container(
+                          //               alignment: Alignment.centerLeft,
+                          //               child: Row(
+                          //                 mainAxisAlignment:
+                          //                     MainAxisAlignment.spaceBetween,
+                          //                 crossAxisAlignment:
+                          //                     CrossAxisAlignment.start,
+                          //                 children: [
+                          //                   const Text("Final Amount ",
+                          //                       textAlign: TextAlign.start),
+                          //                   const Text(" ",
+                          //                       textAlign: TextAlign.start),
+                          //                   const Text(" ",
+                          //                       textAlign: TextAlign.start),
+                          //                   Text(
+                          //                       " ${discountAmountVar != 0 ? discountAmountVar : selectedData?["totalAmount"]}",
+                          //                       textAlign: TextAlign.start),
+                          //                   Container(
+                          //                     alignment: Alignment.centerLeft,
+                          //                     child: Row(
+                          //                       mainAxisAlignment:
+                          //                           MainAxisAlignment
+                          //                               .spaceBetween,
+                          //                       crossAxisAlignment:
+                          //                           CrossAxisAlignment.start,
+                          //                       children: [
+                          //                         TextButton(
+                          //                           onPressed: () {
+                          //                             saveData(context);
+                          //                           },
+                          //                           // style: appButtonTheme.infoText,
+                          //                           child: Row(
+                          //                             mainAxisSize:
+                          //                                 MainAxisSize.min,
+                          //                             children: const [
+                          //                               Padding(
+                          //                                 padding: EdgeInsets.only(
+                          //                                     right:
+                          //                                         kTextPadding),
+                          //                                 child:
+                          //                                     Icon(Icons.save),
+                          //                               ),
+                          //                               Text('Save'),
+                          //                             ],
+                          //                           ),
+                          //                         ),
+                          //                         TextButton(
+                          //                           onPressed: () {
+                          //                             _printScreen();
+                          //                           },
+                          //                           // style: appButtonTheme.infoText,
+                          //                           child: Row(
+                          //                             mainAxisSize:
+                          //                                 MainAxisSize.min,
+                          //                             children: const [
+                          //                               Padding(
+                          //                                 padding: EdgeInsets.only(
+                          //                                     right:
+                          //                                         kTextPadding),
+                          //                                 child: Icon(Icons
+                          //                                     .print_rounded),
+                          //                               ),
+                          //                               Text('Print'),
+                          //                             ],
+                          //                           ),
+                          //                         )
+                          //                       ],
+                          //                     ),
+                          //                   ),
+                          //                 ],
+                          //               ),
+                          //             ),
+                          //           ),
+                          //         ],
+                          //       ),
+                          //     ),
+                          //   ),
+                          // ),
+
+                          Visibility(
+                              visible: _visibility3,
+                              child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      bottom: kDefaultPadding),
+                                  child: Card(
+                                      clipBehavior: Clip.antiAlias,
+                                      child: CardBody(
+                                          child:
+                                          Container(
+                                              alignment: Alignment.centerLeft,
+                                              child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  children: <Widget>[
+                                                    const Text(
+                                                        "No Fee Data Available Please Create a Fee Structure",
+                                                        textAlign:
+                                                            TextAlign.center),
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        create();
+                                                      },
+                                                      //style: appButtonTheme.infoText,
+                                                      child: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: const [
+                                                          Padding(
+                                                            padding:
+                                                                EdgeInsets.only(
+                                                                    right:
+                                                                        kTextPadding),
+                                                            child: Icon(Icons
+                                                                .create_new_folder),
+                                                          ),
+                                                          Text('Create'),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ]))
+                                      )))),
+                          Visibility(
+                            visible: true,
+                            // _visibility7,
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: kDefaultPadding),
+                              child: Card(
+                                clipBehavior: Clip.antiAlias,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CardBody(
+                                      child: Container(
+                                        alignment: Alignment.centerLeft,
+                                        child: Row(
                                           mainAxisAlignment:
-                                              MainAxisAlignment.end,
+                                              MainAxisAlignment.spaceBetween,
                                           crossAxisAlignment:
                                               CrossAxisAlignment.start,
                                           children: [
+                                            Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  Text(
+                                                      " Structure Name :  ${studentDataFee.isNotEmpty ? studentDataFee[0]["structureName"] : ''}",
+                                                      textAlign:
+                                                          TextAlign.start),
+                                                  Container(
+                                                    height: 10,
+                                                  ),
+                                                  Text(
+                                                      "Session:  ${studentDataFee.isNotEmpty ? studentDataFee[0]["sessionYear"] : ""} ",
+                                                      textAlign: TextAlign.end),
+                                                ]),
                                             TextButton(
                                               onPressed: () {
-                                                remove(context);
+                                                setState(() {
+                                                  _visibility6 = !_visibility6;
+                                                });
                                               },
-                                              style: appButtonTheme.errorText,
+                                              //style: appButtonTheme.infoText,
                                               child: Row(
                                                 mainAxisSize: MainAxisSize.min,
-                                                children: const [
+                                                children: [
                                                   Padding(
-                                                    padding: EdgeInsets.only(
-                                                        right: kTextPadding),
-                                                    child: Icon(Icons.delete),
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            right:
+                                                                kTextPadding),
+                                                    child: _visibility6
+                                                        ? const Icon(Icons
+                                                            .keyboard_arrow_up)
+                                                        : const Icon(Icons
+                                                            .keyboard_arrow_down),
                                                   ),
-                                                  Text(""),
+                                                  //Text('Create'),
                                                 ],
                                               ),
                                             ),
-                                            TextButton(
-                                              onPressed: () {
-                                                _printScreen2();
-                                              },
-                                              style: appButtonTheme.infoText,
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: const [
-                                                  Padding(
-                                                    padding: EdgeInsets.only(
-                                                        right: kTextPadding),
-                                                    child: Icon(
-                                                        Icons.print_rounded),
-                                                  ),
-                                                  Text(""),
-                                                ],
-                                              ),
-                                            ),
-                                            TextButton(
-                                              onPressed: () {
-                                                setState(
-                                                    () => _visibility5 = false);
-                                                showOptionsDialog2(context);
-                                              },
-                                              style: appButtonTheme.primaryText,
-                                              child: Row(
-                                                mainAxisSize: MainAxisSize.min,
-                                                children: const [
-                                                  Padding(
-                                                    padding: EdgeInsets.only(
-                                                        right: kTextPadding),
-                                                    child: Icon(Icons
-                                                        .payments_outlined),
-                                                  ),
-                                                  Text(""),
-                                                ],
-                                              ),
-                                            )
-                                          ])),
-                                  // Row(
-                                  //     mainAxisAlignment: MainAxisAlignment.end,
-                                  //     children: <Widget>[
-                                  //       TextButton(
-                                  //         onPressed: () {
-                                  //           create();
-                                  //         },
-                                  //         style: appButtonTheme.infoText,
-                                  //         child: Row(
-                                  //           mainAxisSize: MainAxisSize.min,
-                                  //           children: const [
-                                  //             Padding(
-                                  //               padding: EdgeInsets.only(
-                                  //                   right: kTextPadding),
-                                  //               child: Icon(Icons.print),
-                                  //             ),
-                                  //           ],
-                                  //         ),
-                                  //       ),
-                                  //       TextButton(
-                                  //         onPressed: () {
-                                  //           create();
-                                  //         },
-                                  //         style: appButtonTheme.primaryText,
-                                  //         child: Row(
-                                  //           mainAxisSize: MainAxisSize.min,
-                                  //           children: const [
-                                  //             Padding(
-                                  //               padding: EdgeInsets.only(
-                                  //                   right: kTextPadding),
-                                  //               child: Icon(
-                                  //                   Icons.payments_outlined),
-                                  //             ),
-                                  //           ],
-                                  //         ),
-                                  //       ),
-                                  //     ])
-                                ],
-                              ),
-                            ),
-                          )
-                        : CardBody(
-                            child: Container(
-                              alignment: Alignment.centerLeft,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                      "No Uploaded  Fees Structure Available ",
-                                      textAlign: TextAlign.start),
-                                  TextButton(
-                                    onPressed: () {
-                                      create();
-                                    },
-                                    //style: appButtonTheme.infoText,
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: const [
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                              right: kTextPadding),
-                                          child: Icon(Icons.create_new_folder),
+                                          ],
                                         ),
-                                        // Text('Create'),
-                                      ],
+                                      ),
                                     ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
-        Visibility(
-          visible: true,
-          // _visibility7,
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: kDefaultPadding),
-            child: Card(
-              clipBehavior: Clip.antiAlias,
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  CardBody(
-                    child: Container(
-                      alignment: Alignment.centerLeft,
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(" Fee Detail ",
-                                    textAlign: TextAlign.start),
-                                Container(
-                                  height: 10,
-                                ),
-                                Text(
-                                    "Session:  ${studentDataFee.isNotEmpty ? studentDataFee[0]["sessionYear"] : ""} ",
-                                    textAlign: TextAlign.end),
-                              ]),
-                          TextButton(
-                            onPressed: () {
-                              setState(() {
-                                _visibility8 = !_visibility8;
-                                total = submitFeeDataFromApi.fold(0,
-                                    (sum, item) => sum + item["amount"] as int);
-                              });
-                            },
-                            //style: appButtonTheme.infoText,
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
-                              children: [
-                                Padding(
-                                  padding: const EdgeInsets.only(
-                                      right: kTextPadding),
-                                  child: _visibility8
-                                      ? const Icon(Icons.keyboard_arrow_up)
-                                      : const Icon(Icons.keyboard_arrow_down),
-                                ),
-                                //Text('Create'),
-                              ],
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
-                  Visibility(
-                    visible: _visibility8,
-                    child: _visibility7
-                        ? Padding(
-                            padding: const EdgeInsets.only(bottom: 0),
-                            child: Card(
-                              clipBehavior: Clip.antiAlias,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  // CardHeader(
-                                  //   title: lang.recentOrders(2),
-                                  //   showDivider: false,
-                                  // ),
-                                  SizedBox(
-                                    width: double.infinity,
-                                    child: LayoutBuilder(
-                                      builder: (context, constraints) {
-                                        final double dataTableWidth = max(
-                                            kScreenWidthMd,
-                                            constraints.maxWidth);
-
-                                        return Scrollbar(
-                                          controller:
-                                              _dataTableHorizontalScrollController,
-                                          thumbVisibility: true,
-                                          trackVisibility: true,
-                                          child: SingleChildScrollView(
-                                            scrollDirection: Axis.horizontal,
-                                            controller:
-                                                _dataTableHorizontalScrollController,
-                                            child: SizedBox(
-                                              width: dataTableWidth,
-                                              child: Theme(
-                                                data: themeData.copyWith(
-                                                  cardTheme: appDataTableTheme
-                                                      .cardTheme,
-                                                  dataTableTheme:
-                                                      appDataTableTheme
-                                                          .dataTableThemeData,
-                                                ),
-                                                child: DataTable(
-                                                  showCheckboxColumn: false,
-                                                  showBottomBorder: true,
-                                                  columns: const [
-                                                    DataColumn(
-                                                        label: Text(
-                                                            'Transaction Id           '),
-                                                        numeric: true),
-                                                    DataColumn(
-                                                        label: Text(
-                                                            'Description '),
-                                                        numeric: true),
-                                                    DataColumn(
-                                                        label: Text('Date')),
-                                                    DataColumn(
-                                                        label: Text('Amount'),
-                                                        numeric: true),
-                                                    DataColumn(
-                                                        label: Text(
-                                                            'Action               '),
-                                                        numeric: true),
-                                                  ],
-                                                  rows: List.generate(
-                                                      submitFeeDataFromApi
-                                                          .length, (index) {
-                                                    return DataRow.byIndex(
-                                                      index: index,
-                                                      cells: [
-                                                        DataCell(Text(
-                                                            '#${submitFeeDataFromApi[index]["transactionId"]}')),
-                                                        DataCell(Text(
-                                                            "${submitFeeDataFromApi[index]["decription"]}")),
-                                                        DataCell(Text(
-                                                            "${submitFeeDataFromApi[index]["paidAt"]}")),
-                                                        DataCell(Text(
-                                                          "${submitFeeDataFromApi[index]["amount"]}",
-                                                          textAlign:
-                                                              TextAlign.start,
-                                                        )),
-                                                        DataCell(Row(
+                                    Visibility(
+                                      visible: _visibility6,
+                                      child: _visibility4
+                                          ? Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 0),
+                                              child: Card(
+                                                clipBehavior: Clip.antiAlias,
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    // CardHeader(
+                                                    //   title: lang.recentOrders(2),
+                                                    //   showDivider: false,
+                                                    // ),
+                                                    SizedBox(
+                                                      width: double.infinity,
+                                                      child: LayoutBuilder(
+                                                        builder: (context,
+                                                            constraints) {
+                                                          final double
+                                                              dataTableWidth =
+                                                              max(
+                                                                  kScreenWidthMd,
+                                                                  constraints
+                                                                      .maxWidth);
+                                                          return Scrollbar(
+                                                            controller:
+                                                                _dataTableHorizontalScrollController,
+                                                            thumbVisibility:
+                                                                true,
+                                                            trackVisibility:
+                                                                true,
+                                                            child:
+                                                                SingleChildScrollView(
+                                                              scrollDirection:
+                                                                  Axis.horizontal,
+                                                              controller:
+                                                                  _dataTableHorizontalScrollController,
+                                                              child: SizedBox(
+                                                                width:
+                                                                    dataTableWidth,
+                                                                child: Theme(
+                                                                  data: themeData
+                                                                      .copyWith(
+                                                                    cardTheme:
+                                                                        appDataTableTheme
+                                                                            .cardTheme,
+                                                                    dataTableTheme:
+                                                                        appDataTableTheme
+                                                                            .dataTableThemeData,
+                                                                  ),
+                                                                  child:
+                                                                      DataTable(
+                                                                    showCheckboxColumn:
+                                                                        true,
+                                                                    showBottomBorder:
+                                                                        true,
+                                                                    columns: const [
+                                                                      DataColumn(
+                                                                          label: Text(
+                                                                              'Id '),
+                                                                          numeric:
+                                                                              true),
+                                                                      DataColumn(
+                                                                          label: Text(
+                                                                              'Description '),
+                                                                          numeric:
+                                                                              true),
+                                                                      DataColumn(
+                                                                          label: Text(
+                                                                              'Amount'),
+                                                                          numeric:
+                                                                              true),
+                                                                      DataColumn(
+                                                                          label: Text(
+                                                                              '         '),
+                                                                          numeric:
+                                                                              true),
+                                                                      DataColumn(
+                                                                          label: Text(
+                                                                              '         '),
+                                                                          numeric:
+                                                                              true)
+                                                                    ],
+                                                                    rows: List.generate(
+                                                                        selectedElement
+                                                                            .length,
+                                                                        (index) {
+                                                                      return DataRow
+                                                                          .byIndex(
+                                                                        index:
+                                                                            index,
+                                                                        cells: [
+                                                                          DataCell(
+                                                                              Text("#${index + 1}")),
+                                                                          DataCell(
+                                                                              Text("${selectedElement.isNotEmpty ? selectedElement[index]["decription"] : ''}")),
+                                                                          const DataCell(
+                                                                              Text("            ")),
+                                                                          DataCell(
+                                                                              Text(
+                                                                            "${selectedElement.isNotEmpty ? selectedElement[index]["amount"] : ''}",
+                                                                            textAlign:
+                                                                                TextAlign.start,
+                                                                          )),
+                                                                          const DataCell(
+                                                                              Text("            ")),
+                                                                        ],
+                                                                      );
+                                                                    }),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                      ),
+                                                    ),
+                                                    const Text("   "),
+                                                    Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceEvenly,
+                                                        children: <Widget>[
+                                                          const Text(
+                                                              "Total  Amount :  "),
+                                                          Text(
+                                                              " ${studentDataFee.isNotEmpty ? studentDataFee[0]["totalAmount"] : ''}"),
+                                                        ]),
+                                                    const Text(""),
+                                                    Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceEvenly,
+                                                        children: <Widget>[
+                                                          const Text(
+                                                              " Discounted Amount : "),
+                                                          Text(
+                                                              " ${studentDataFee.isNotEmpty ? studentDataFee[0]["disscount"] : ""}")
+                                                        ]),
+                                                    const Text(""),
+                                                    Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceEvenly,
+                                                        children: <Widget>[
+                                                          const Text(
+                                                              " Final Amount : "),
+                                                          Text(
+                                                              "  $discountAmountVar")
+                                                        ]),
+                                                    Container(
+                                                        alignment: Alignment
+                                                            .centerLeft,
+                                                        child: Row(
                                                             mainAxisAlignment:
                                                                 MainAxisAlignment
-                                                                    .center,
-                                                            children: <Widget>[
+                                                                    .end,
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
                                                               TextButton(
                                                                 onPressed: () {
-                                                                  create();
+                                                                  remove(
+                                                                      context);
                                                                 },
                                                                 style: appButtonTheme
-                                                                    .successText,
+                                                                    .errorText,
                                                                 child: Row(
                                                                   mainAxisSize:
                                                                       MainAxisSize
@@ -2747,145 +2491,1068 @@ class _StudentScreen extends State<StudentScreen> {
                                                                               kTextPadding),
                                                                       child: Icon(
                                                                           Icons
-                                                                              .edit),
+                                                                              .delete),
                                                                     ),
+                                                                    Text(""),
                                                                   ],
                                                                 ),
                                                               ),
-                                                            ]))
-                                                      ],
-                                                    );
-                                                  }),
+                                                              TextButton(
+                                                                onPressed: () {
+                                                                  _printScreen2();
+                                                                },
+                                                                style:
+                                                                    appButtonTheme
+                                                                        .infoText,
+                                                                child: Row(
+                                                                  mainAxisSize:
+                                                                      MainAxisSize
+                                                                          .min,
+                                                                  children: const [
+                                                                    Padding(
+                                                                      padding: EdgeInsets.only(
+                                                                          right:
+                                                                              kTextPadding),
+                                                                      child: Icon(
+                                                                          Icons
+                                                                              .print_rounded),
+                                                                    ),
+                                                                    Text(""),
+                                                                  ],
+                                                                ),
+                                                              ),
+                                                              TextButton(
+                                                                onPressed: () {
+                                                                  setState(() =>
+                                                                      _visibility5 =
+                                                                          false);
+                                                                  showOptionsDialog2(
+                                                                      context);
+                                                                },
+                                                                style: appButtonTheme
+                                                                    .primaryText,
+                                                                child: Row(
+                                                                  mainAxisSize:
+                                                                      MainAxisSize
+                                                                          .min,
+                                                                  children: const [
+                                                                    Padding(
+                                                                      padding: EdgeInsets.only(
+                                                                          right:
+                                                                              kTextPadding),
+                                                                      child: Icon(
+                                                                          Icons
+                                                                              .payments_outlined),
+                                                                    ),
+                                                                    Text(""),
+                                                                  ],
+                                                                ),
+                                                              )
+                                                            ])),
+                                                    // Row(
+                                                    //     mainAxisAlignment: MainAxisAlignment.end,
+                                                    //     children: <Widget>[
+                                                    //       TextButton(
+                                                    //         onPressed: () {
+                                                    //           create();
+                                                    //         },
+                                                    //         style: appButtonTheme.infoText,
+                                                    //         child: Row(
+                                                    //           mainAxisSize: MainAxisSize.min,
+                                                    //           children: const [
+                                                    //             Padding(
+                                                    //               padding: EdgeInsets.only(
+                                                    //                   right: kTextPadding),
+                                                    //               child: Icon(Icons.print),
+                                                    //             ),
+                                                    //           ],
+                                                    //         ),
+                                                    //       ),
+                                                    //       TextButton(
+                                                    //         onPressed: () {
+                                                    //           create();
+                                                    //         },
+                                                    //         style: appButtonTheme.primaryText,
+                                                    //         child: Row(
+                                                    //           mainAxisSize: MainAxisSize.min,
+                                                    //           children: const [
+                                                    //             Padding(
+                                                    //               padding: EdgeInsets.only(
+                                                    //                   right: kTextPadding),
+                                                    //               child: Icon(
+                                                    //                   Icons.payments_outlined),
+                                                    //             ),
+                                                    //           ],
+                                                    //         ),
+                                                    //       ),
+                                                    //     ])
+                                                  ],
+                                                ),
+                                              ),
+                                            )
+                                          : CardBody(
+                                              child:
+
+                                                  Container(
+                                                alignment: Alignment.centerLeft,
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    const Text(
+                                                        "No Uploaded  Fees Structure Available ",
+                                                        textAlign:
+                                                            TextAlign.start),
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        create();
+                                                      },
+                                                      //style: appButtonTheme.infoText,
+                                                      child: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: const [
+                                                          Padding(
+                                                            padding:
+                                                                EdgeInsets.only(
+                                                                    right:
+                                                                        kTextPadding),
+                                                            child: Icon(Icons
+                                                                .create_new_folder),
+                                                          ),
+                                                          // Text('Create'),
+                                                        ],
+                                                      ),
+                                                    ),
+                                                  ],
                                                 ),
                                               ),
                                             ),
-                                          ),
-                                        );
-                                      },
                                     ),
-                                  ),
-                                  const Text("   "),
-                                  Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: <Widget>[
-                                        const Text(
-                                            "Total pay amount in Selected Session : "),
-                                        Text("$total"),
-                                      ]),
-                                  const Text(""),
-                                  Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceEvenly,
-                                      children: <Widget>[
-                                        const Text(
-                                            "               Total Fee in Selected Session : "),
-                                        Text(
-                                            " ${studentDataFee[0]["totalAmount"]}"),
-                                      ]),
-
-                                  Row(
-                                      mainAxisAlignment: MainAxisAlignment.end,
-                                      children: <Widget>[
-                                        TextButton(
-                                          onPressed: () {
-                                            create();
-                                          },
-                                          style: appButtonTheme.infoText,
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: const [
-                                              Padding(
-                                                padding: EdgeInsets.only(
-                                                    right: kTextPadding),
-                                                child: Icon(Icons.print),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                        TextButton(
-                                          onPressed: () {
-                                            setState(
-                                                () => _visibility5 = false);
-                                            showOptionsDialog2(context);
-                                          },
-                                          style: appButtonTheme.primaryText,
-                                          child: Row(
-                                            mainAxisSize: MainAxisSize.min,
-                                            children: const [
-                                              Padding(
-                                                padding: EdgeInsets.only(
-                                                    right: kTextPadding),
-                                                child: Icon(
-                                                    Icons.payments_outlined),
-                                              ),
-                                            ],
-                                          ),
-                                        ),
-                                      ])
-                                ],
+                                  ],
+                                ),
                               ),
                             ),
-                          )
-                        : CardBody(
-                            child: Container(
-                              alignment: Alignment.centerLeft,
-                              child: Row(
-                                mainAxisAlignment:
-                                    MainAxisAlignment.spaceBetween,
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Text(
-                                      "No Submitted Fees Data Available ",
-                                      textAlign: TextAlign.start),
-                                  TextButton(
-                                    onPressed: () {
-                                      setState(() => _visibility5 = false);
-                                      showOptionsDialog2(context);
-                                    },
-                                    style: appButtonTheme.primaryText,
-                                    child: Row(
-                                      mainAxisSize: MainAxisSize.min,
-                                      children: const [
-                                        Padding(
-                                          padding: EdgeInsets.only(
-                                              right: kTextPadding),
-                                          child: Icon(Icons.payments_outlined),
+                          ),
+                          Visibility(
+                            visible: true,
+                            // _visibility7,
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                  bottom: kDefaultPadding),
+                              child: Card(
+                                clipBehavior: Clip.antiAlias,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    CardBody(
+                                      child: Container(
+                                        alignment: Alignment.centerLeft,
+                                        child: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Column(
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
+                                                children: [
+                                                  const Text(" Fee Detail ",
+                                                      textAlign:
+                                                          TextAlign.start),
+                                                  Container(
+                                                    height: 10,
+                                                  ),
+                                                  Text(
+                                                      "Session:  ${studentDataFee.isNotEmpty ? studentDataFee[0]["sessionYear"] : ""} ",
+                                                      textAlign: TextAlign.end),
+                                                ]),
+                                            TextButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  _visibility8 = !_visibility8;
+                                                  total =
+                                                      submitFeeDataFromApi.fold(
+                                                          0,
+                                                          (sum, item) => sum +
+                                                                  item["amount"]
+                                                              as int);
+                                                });
+                                              },
+                                              //style: appButtonTheme.infoText,
+                                              child: Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Padding(
+                                                    padding:
+                                                        const EdgeInsets.only(
+                                                            right:
+                                                                kTextPadding),
+                                                    child: _visibility8
+                                                        ? const Icon(Icons
+                                                            .keyboard_arrow_up)
+                                                        : const Icon(Icons
+                                                            .keyboard_arrow_down),
+                                                  ),
+                                                  //Text('Create'),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
                                         ),
-                                        Text(""),
-                                      ],
+                                      ),
                                     ),
-                                  )
+                                    Visibility(
+                                      visible: _visibility8,
+                                      child: _visibility7
+                                          ? Padding(
+                                              padding: const EdgeInsets.only(
+                                                  bottom: 0),
+                                              child: Card(
+                                                clipBehavior: Clip.antiAlias,
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    // CardHeader(
+                                                    //   title: lang.recentOrders(2),
+                                                    //   showDivider: false,
+                                                    // ),
+                                                    SizedBox(
+                                                      width: double.infinity,
+                                                      child: LayoutBuilder(
+                                                        builder: (context,
+                                                            constraints) {
+                                                          final double
+                                                              dataTableWidth =
+                                                              max(
+                                                                  kScreenWidthMd,
+                                                                  constraints
+                                                                      .maxWidth);
+
+                                                          return Scrollbar(
+                                                            controller:
+                                                                _dataTableHorizontalScrollController,
+                                                            thumbVisibility:
+                                                                true,
+                                                            trackVisibility:
+                                                                true,
+                                                            child:
+                                                                SingleChildScrollView(
+                                                              scrollDirection:
+                                                                  Axis.horizontal,
+                                                              controller:
+                                                                  _dataTableHorizontalScrollController,
+                                                              child: SizedBox(
+                                                                width:
+                                                                    dataTableWidth,
+                                                                child: Theme(
+                                                                  data: themeData
+                                                                      .copyWith(
+                                                                    cardTheme:
+                                                                        appDataTableTheme
+                                                                            .cardTheme,
+                                                                    dataTableTheme:
+                                                                        appDataTableTheme
+                                                                            .dataTableThemeData,
+                                                                  ),
+                                                                  child:
+                                                                      DataTable(
+                                                                    showCheckboxColumn:
+                                                                        false,
+                                                                    showBottomBorder:
+                                                                        true,
+                                                                    columns: const [
+                                                                      DataColumn(
+                                                                          label: Text(
+                                                                              'Transaction Id           '),
+                                                                          numeric:
+                                                                              true),
+                                                                      DataColumn(
+                                                                          label: Text(
+                                                                              'Description '),
+                                                                          numeric:
+                                                                              true),
+                                                                      DataColumn(
+                                                                          label:
+                                                                              Text('Date')),
+                                                                      DataColumn(
+                                                                          label: Text(
+                                                                              'Amount'),
+                                                                          numeric:
+                                                                              true),
+                                                                      DataColumn(
+                                                                          label: Text(
+                                                                              'Action               '),
+                                                                          numeric:
+                                                                              true),
+                                                                    ],
+                                                                    rows: List.generate(
+                                                                        submitFeeDataFromApi
+                                                                            .length,
+                                                                        (index) {
+                                                                      return DataRow
+                                                                          .byIndex(
+                                                                        index:
+                                                                            index,
+                                                                        cells: [
+                                                                          DataCell(
+                                                                              Text('#${submitFeeDataFromApi[index]["transactionId"]}')),
+                                                                          DataCell(
+                                                                              Text("${submitFeeDataFromApi[index]["decription"]}")),
+                                                                          DataCell(
+                                                                              Text("${submitFeeDataFromApi[index]["paidAt"]}")),
+                                                                          DataCell(
+                                                                              Text(
+                                                                            "${submitFeeDataFromApi[index]["amount"]}",
+                                                                            textAlign:
+                                                                                TextAlign.start,
+                                                                          )),
+                                                                          DataCell(Row(
+                                                                              mainAxisAlignment: MainAxisAlignment.center,
+                                                                              children: <Widget>[
+                                                                                TextButton(
+                                                                                  onPressed: () {
+                                                                                    create();
+                                                                                  },
+                                                                                  style: appButtonTheme.successText,
+                                                                                  child: Row(
+                                                                                    mainAxisSize: MainAxisSize.min,
+                                                                                    children: const [
+                                                                                      Padding(
+                                                                                        padding: EdgeInsets.only(right: kTextPadding),
+                                                                                        child: Icon(Icons.edit),
+                                                                                      ),
+                                                                                    ],
+                                                                                  ),
+                                                                                ),
+                                                                              ]))
+                                                                        ],
+                                                                      );
+                                                                    }),
+                                                                  ),
+                                                                ),
+                                                              ),
+                                                            ),
+                                                          );
+                                                        },
+                                                      ),
+                                                    ),
+                                                    const Text("   "),
+                                                    Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceEvenly,
+                                                        children: <Widget>[
+                                                          const Text(
+                                                              "Total pay amount in Selected Session : "),
+                                                          Text("$total"),
+                                                        ]),
+                                                    const Text(""),
+                                                    Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .spaceEvenly,
+                                                        children: <Widget>[
+                                                          const Text(
+                                                              "               Total Fee in Selected Session : "),
+                                                          Text(
+                                                              " ${studentDataFee[0]["totalAmount"]}"),
+                                                        ]),
+
+                                                    Row(
+                                                        mainAxisAlignment:
+                                                            MainAxisAlignment
+                                                                .end,
+                                                        children: <Widget>[
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              create();
+                                                            },
+                                                            style:
+                                                                appButtonTheme
+                                                                    .infoText,
+                                                            child: Row(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: const [
+                                                                Padding(
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                          right:
+                                                                              kTextPadding),
+                                                                  child: Icon(
+                                                                      Icons
+                                                                          .print),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                          TextButton(
+                                                            onPressed: () {
+                                                              setState(() =>
+                                                                  _visibility5 =
+                                                                      false);
+                                                              showOptionsDialog2(
+                                                                  context);
+                                                            },
+                                                            style: appButtonTheme
+                                                                .primaryText,
+                                                            child: Row(
+                                                              mainAxisSize:
+                                                                  MainAxisSize
+                                                                      .min,
+                                                              children: const [
+                                                                Padding(
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                          right:
+                                                                              kTextPadding),
+                                                                  child: Icon(Icons
+                                                                      .payments_outlined),
+                                                                ),
+                                                              ],
+                                                            ),
+                                                          ),
+                                                        ])
+                                                  ],
+                                                ),
+                                              ),
+                                            )
+                                          : CardBody(
+                                              child: Container(
+                                                alignment: Alignment.centerLeft,
+                                                child: Row(
+                                                  mainAxisAlignment:
+                                                      MainAxisAlignment
+                                                          .spaceBetween,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    const Text(
+                                                        "No Submitted Fees Data Available ",
+                                                        textAlign:
+                                                            TextAlign.start),
+                                                    TextButton(
+                                                      onPressed: () {
+                                                        setState(() =>
+                                                            _visibility5 =
+                                                                false);
+                                                        showOptionsDialog2(
+                                                            context);
+                                                      },
+                                                      style: appButtonTheme
+                                                          .primaryText,
+                                                      child: Row(
+                                                        mainAxisSize:
+                                                            MainAxisSize.min,
+                                                        children: const [
+                                                          Padding(
+                                                            padding:
+                                                                EdgeInsets.only(
+                                                                    right:
+                                                                        kTextPadding),
+                                                            child: Icon(Icons
+                                                                .payments_outlined),
+                                                          ),
+                                                          Text(""),
+                                                        ],
+                                                      ),
+                                                    )
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ), //it's for when data available in selected session
+                        ],
+                      ), // Widget for the second card
+                    ),
+                  ),
+                ),
+              ),
+            ],
+            if (selectedButtonIndex == 3) ...[
+              SingleChildScrollView(
+                child: Padding(
+                  padding: const EdgeInsets.all(kDefaultPadding),
+                  child: Card(
+                    clipBehavior: Clip.antiAlias,
+                    child: Padding(
+                      padding: const EdgeInsets.all(kDefaultPadding),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          FormBuilder(
+                            key: _formKey,
+                            autovalidateMode: AutovalidateMode.disabled,
+                            child: SizedBox(
+                              width: double.infinity,
+                              child: Wrap(
+                                direction: Axis.horizontal,
+                                spacing: kDefaultPadding,
+                                runSpacing: kDefaultPadding,
+                                alignment: WrapAlignment.spaceBetween,
+                                crossAxisAlignment: WrapCrossAlignment.center,
+                                children: [
+                                  const Text("Student Document"),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      SizedBox(
+                                        height: 40.0,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                              right: kDefaultPadding),
+                                          child: SizedBox(
+                                            height: 40.0,
+                                            child: IconButton(
+                                                color: Colors.cyan,
+                                                icon: const Icon(
+                                                    Icons.print_sharp),
+                                                tooltip: 'Print',
+                                                onPressed: () async {
+                                                  if (clickFiles["fileType"] ==
+                                                          'xlsx' ||
+                                                      clickFiles["fileType"] ==
+                                                          'pdf') {
+                                                    await Printing.layoutPdf(
+                                                        onLayout: (PdfPageFormat
+                                                                format) async =>
+                                                            clickFiles[
+                                                                'fileBytes']);
+                                                  }
+
+                                                  if (clickFiles["fileType"] == 'jpg' ||
+                                                      clickFiles["fileType"] ==
+                                                          'png' ||
+                                                      clickFiles["fileType"] ==
+                                                          'JPG') {
+                                                    final doc = pw.Document();
+                                                    doc.addPage(pw.Page(
+                                                        pageFormat:
+                                                            PdfPageFormat.a4,
+                                                        build: (pw.Context
+                                                            context) {
+                                                          return pw.Center(
+                                                            child: pw.Text(
+                                                                'Hello World'),
+                                                          ); // Center
+                                                        }));
+
+                                                    // PdfPreview(
+                                                    //   build: (format) => doc.save(),
+                                                    // );
+                                                    // await Printing.layoutPdf(onLayout: (PdfPageFormat format) async =>clickFiles['fileBytes']);
+
+                                                  }
+
+                                                  // if (clickFiles["fileType"] == 'pdf') {
+                                                  //   final blob = html.Blob([
+                                                  //     clickFiles['fileContent']!
+                                                  //         .codeUnits
+                                                  //   ]);
+                                                  //   final url = html.Url
+                                                  //       .createObjectUrlFromBlob(
+                                                  //       blob);
+                                                  //   final anchor =
+                                                  //   html.AnchorElement(
+                                                  //       href: url)
+                                                  //     ..setAttribute(
+                                                  //         'download',
+                                                  //         clickFiles[
+                                                  //         'fileName']!)
+                                                  //     ..click();
+                                                  //   html.Url.revokeObjectUrl(
+                                                  //       url);
+                                                  // }
+                                                  // if (clickFiles["fileType"] ==
+                                                  //     'docx') {
+                                                  //   final blob = html.Blob([
+                                                  //     clickFiles['fileContent']!
+                                                  //         .codeUnits
+                                                  //   ]);
+                                                  //   final url = html.Url
+                                                  //       .createObjectUrlFromBlob(
+                                                  //       blob);
+                                                  //   final anchor =
+                                                  //   html.AnchorElement(
+                                                  //       href: url)
+                                                  //     ..setAttribute(
+                                                  //         'download',
+                                                  //         clickFiles[
+                                                  //         'fileName']!)
+                                                  //     ..click();
+                                                  //   html.Url.revokeObjectUrl(
+                                                  //       url);
+                                                  // }
+                                                  // if (clickFiles["fileType"] == 'jpg' ||
+                                                  //     clickFiles["fileType"] ==
+                                                  //         'png' ||
+                                                  //     clickFiles["fileType"] ==
+                                                  //         'JPG') {
+                                                  //   final blob = html.Blob([
+                                                  //     Uint8List.fromList(
+                                                  //         clickFiles[
+                                                  //         'fileContent']
+                                                  //             .codeUnits)
+                                                  //   ], 'image/jpeg');
+                                                  //   final url = html.Url
+                                                  //       .createObjectUrlFromBlob(
+                                                  //       blob);
+                                                  //   final anchor =
+                                                  //   html.AnchorElement(
+                                                  //       href: url)
+                                                  //     ..setAttribute(
+                                                  //         'download',
+                                                  //         clickFiles[
+                                                  //         'fileName']!)
+                                                  //     ..click();
+                                                  //   html.Url.revokeObjectUrl(
+                                                  //       url);
+                                                  // }
+                                                }),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 40.0,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                              right: kDefaultPadding),
+                                          child: SizedBox(
+                                            height: 40.0,
+                                            child: IconButton(
+                                                color: Colors.green,
+                                                icon:
+                                                    const Icon(Icons.download),
+                                                tooltip: 'Download',
+                                                onPressed: () {
+                                                  if (clickFiles["fileType"] ==
+                                                      'xlsx') {
+                                                    final encodedContent =
+                                                        base64.encode(clickFiles[
+                                                                'fileContent']!
+                                                            .codeUnits);
+                                                    final dataUri =
+                                                        'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,$encodedContent';
+                                                    html.window.open(
+                                                        dataUri, '_blank');
+                                                  }
+                                                  if (clickFiles["fileType"] ==
+                                                      'pdf') {
+                                                    final blob = html.Blob([
+                                                      clickFiles['fileContent']!
+                                                          .codeUnits
+                                                    ]);
+                                                    final url = html.Url
+                                                        .createObjectUrlFromBlob(
+                                                            blob);
+                                                    final anchor =
+                                                        html.AnchorElement(
+                                                            href: url)
+                                                          ..setAttribute(
+                                                              'download',
+                                                              clickFiles[
+                                                                  'fileName']!)
+                                                          ..click();
+                                                    html.Url.revokeObjectUrl(
+                                                        url);
+                                                  }
+                                                  if (clickFiles["fileType"] ==
+                                                      'docx') {
+                                                    final blob = html.Blob([
+                                                      clickFiles['fileContent']!
+                                                          .codeUnits
+                                                    ]);
+                                                    final url = html.Url
+                                                        .createObjectUrlFromBlob(
+                                                            blob);
+                                                    final anchor =
+                                                        html.AnchorElement(
+                                                            href: url)
+                                                          ..setAttribute(
+                                                              'download',
+                                                              clickFiles[
+                                                                  'fileName']!)
+                                                          ..click();
+                                                    html.Url.revokeObjectUrl(
+                                                        url);
+                                                  }
+                                                  if (clickFiles["fileType"] == 'jpg' ||
+                                                      clickFiles["fileType"] ==
+                                                          'png' ||
+                                                      clickFiles["fileType"] ==
+                                                          'JPG') {
+                                                    final blob = html.Blob([
+                                                      Uint8List.fromList(
+                                                          clickFiles[
+                                                                  'fileContent']
+                                                              .codeUnits)
+                                                    ], 'image/jpeg');
+                                                    final url = html.Url
+                                                        .createObjectUrlFromBlob(
+                                                            blob);
+                                                    final anchor =
+                                                        html.AnchorElement(
+                                                            href: url)
+                                                          ..setAttribute(
+                                                              'download',
+                                                              clickFiles[
+                                                                  'fileName']!)
+                                                          ..click();
+                                                    html.Url.revokeObjectUrl(
+                                                        url);
+                                                  }
+                                                }),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 40.0,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                              right: kDefaultPadding),
+                                          child: SizedBox(
+                                            height: 40.0,
+                                            child: IconButton(
+                                                color: Colors.red,
+                                                icon: const Icon(Icons.delete),
+                                                tooltip: 'Delete Selected',
+                                                onPressed: () => {}
+                                                //GoRouter.of(context).go(RouteUri.crudDetail),
+                                                ),
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        height: 40.0,
+                                        child: Padding(
+                                          padding: const EdgeInsets.only(
+                                              right: kDefaultPadding),
+                                          child: SizedBox(
+                                            height: 40.0,
+                                            child: IconButton(
+                                                color: Colors.blueAccent,
+                                                icon: const Icon(
+                                                    Icons.add_circle_outline),
+                                                tooltip: 'Add New Document',
+                                                onPressed: () => openImages()),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
                                 ],
                               ),
                             ),
                           ),
+                          const Divider(),
+                          selectedFiles.isNotEmpty
+                              ? SizedBox(
+                                  height:
+                                      100, // Adjust the height of the grid view
+                                  child: SingleChildScrollView(
+                                    scrollDirection: Axis
+                                        .horizontal, // Enable horizontal scrolling
+                                    child: Row(
+                                      children: List.generate(
+                                        selectedFiles.length,
+                                        (index) {
+                                          final fileData = selectedFiles[index];
+                                          final fileType = fileData['fileType'];
+                                          final fileContent =
+                                              fileData['fileContent'];
+                                          final fileName = fileData['fileName'];
+                                          final truncatedFileName = fileName !=
+                                                      null &&
+                                                  fileName.length > 10
+                                              ? '${fileName.substring(0, 10)}...'
+                                              : fileName;
+                                          Widget fileWidget;
+                                          if (fileType == 'jpg' ||
+                                              fileType == 'png' ||
+                                              fileType == 'JPG') {
+                                            fileWidget = OutlinedButton(
+                                              onPressed: () {
+                                                setState(() {
+                                                  clickFiles = fileData;
+                                                });
+                                              },
+                                              style: clickFiles == fileData
+                                                  ? appButtonTheme
+                                                      .primaryOutlined
+                                                  : appButtonTheme
+                                                      .secondaryOutlined,
+                                              child: Image.memory(
+                                                Uint8List.fromList(
+                                                    fileContent!.codeUnits),
+                                                fit: BoxFit.cover,
+                                                width: 50, // Adjust image width
+                                                height:
+                                                    50, // Adjust image height
+                                              ),
+                                            );
+                                          } else if (fileType == 'pdf') {
+                                            fileWidget = OutlinedButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    clickFiles = fileData;
+                                                  });
+                                                },
+                                                style: clickFiles == fileData
+                                                    ? appButtonTheme
+                                                        .primaryOutlined
+                                                    : appButtonTheme
+                                                        .secondaryOutlined,
+                                                child: Container(
+                                                  color: Colors.grey[200],
+                                                  width:
+                                                      50, // Adjust icon width
+                                                  height:
+                                                      50, // Adjust icon height
+                                                  child: const Center(
+                                                    child: Icon(
+                                                      Icons.picture_as_pdf,
+                                                      size:
+                                                          45, // Decrease PDF icon size
+                                                      color: Colors.red,
+                                                    ),
+                                                  ),
+                                                ));
+                                          } else if (fileType == 'docx') {
+                                            fileWidget = OutlinedButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    clickFiles = fileData;
+                                                  });
+                                                },
+                                                style: clickFiles == fileData
+                                                    ? appButtonTheme
+                                                        .primaryOutlined
+                                                    : appButtonTheme
+                                                        .secondaryOutlined,
+                                                child: Container(
+                                                  color: Colors.grey[200],
+                                                  width:
+                                                      50, // Adjust icon width
+                                                  height:
+                                                      50, // Adjust icon height
+                                                  child: const Center(
+                                                    child: Icon(
+                                                      Icons.description,
+                                                      size: 45, // Icon size
+                                                      color: Colors.blue,
+                                                    ),
+                                                  ),
+                                                ));
+                                          } else if (fileType == 'xlsx') {
+                                            fileWidget = OutlinedButton(
+                                                onPressed: () {
+                                                  setState(() {
+                                                    clickFiles = fileData;
+                                                  });
+                                                },
+                                                style: clickFiles == fileData
+                                                    ? appButtonTheme
+                                                        .primaryOutlined
+                                                    : appButtonTheme
+                                                        .secondaryOutlined,
+                                                child: Container(
+                                                  color: Colors.grey[200],
+                                                  width:
+                                                      50, // Adjust icon width
+                                                  height:
+                                                      50, // Adjust icon height
+                                                  child: Center(
+                                                    child: SvgPicture.string(
+                                                      '''<?xml version="1.0" ?><!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'><svg enable-background="new 0 0 0 0" height="30px" id="Layer_1" version="1.1" viewBox="0 0 30 30" width="30px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g><path clip-rule="evenodd" d="M28.705,7.506l-5.461-6.333l-1.08-1.254H9.262   c-1.732,0-3.133,1.403-3.133,3.136V7.04h1.942L8.07,3.818c0.002-0.975,0.786-1.764,1.758-1.764l11.034-0.01v5.228   c0.002,1.947,1.575,3.523,3.524,3.523h3.819l-0.188,15.081c-0.003,0.97-0.79,1.753-1.759,1.761l-16.57-0.008   c-0.887,0-1.601-0.87-1.605-1.942v-1.277H6.138v1.904c0,1.912,1.282,3.468,2.856,3.468l17.831-0.004   c1.732,0,3.137-1.41,3.137-3.139V8.966L28.705,7.506" fill="black" fill-rule="evenodd"/><path d="M20.223,25.382H0V6.068h20.223V25.382 M1.943,23.438h16.333V8.012H1.943" fill="green"/><polyline fill="green" points="15.73,20.822 12.325,20.822 10.001,17.538 7.561,20.822 4.14,20.822 8.384,15.486 4.957,10.817    8.412,10.817 10.016,13.355 11.726,10.817 15.242,10.817 11.649,15.486 15.73,20.822  "/></g></svg>''',
+                                                      width: 40,
+                                                      height: 40,
+                                                    ),
+                                                  ),
+                                                ));
+                                          } else {
+                                            fileWidget = Text(
+                                              'File: $truncatedFileName, Type: $fileType\nContent: $fileContent',
+                                            );
+                                          }
+                                          return GestureDetector(
+                                            onTap: () {
+                                              if (fileType == 'jpg' ||
+                                                  fileType == 'png' ||
+                                                  fileType == 'JPG') {
+                                                // Open the image in a larger size or perform other actions here
+                                                print(
+                                                    'Image clicked: $fileName');
+                                                // You can open the image in a larger size or perform any other action here
+                                              }
+                                            },
+                                            child: Tooltip(
+                                              message: fileName ?? '',
+                                              child: Padding(
+                                                padding:
+                                                    const EdgeInsets.all(4.0),
+                                                child: Column(
+                                                  children: [
+                                                    Expanded(child: fileWidget),
+                                                    Text(
+                                                      truncatedFileName ?? '',
+                                                      style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 12),
+                                                      textAlign:
+                                                          TextAlign.center,
+                                                      overflow:
+                                                          TextOverflow.ellipsis,
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                            ),
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                )
+                              : const SizedBox(
+                                  height: 100,
+                                  child: Center(
+                                      child:
+                                          Text("No Uploaded File Available ")),
+                                ),
+                          const Divider(),
+                          const SizedBox(
+                            height: 10,
+                          ),
+                          SizedBox(
+                            height: 350,
+                            child: SingleChildScrollView(
+                              child: Row(
+                                mainAxisAlignment: MainAxisAlignment
+                                    .spaceAround, // Center the icons horizontally
+                                children: [
+                                  if (clickFiles.isNotEmpty)
+                                    IconButton(
+                                      onPressed: () {
+                                        nextImage(0);
+                                      },
+                                      icon: const Icon(Icons.arrow_back_ios),
+                                    ),
+                                  if (clickFiles["fileType"] == 'png' ||
+                                      clickFiles["fileType"] == 'JPG')
+                                    Center(
+                                      child: Image.memory(
+                                        Uint8List.fromList(
+                                            clickFiles['fileContent']
+                                                .codeUnits),
+                                        fit: BoxFit.cover,
+                                        width: 250, // Adjust image width
+                                        height: 300, // Adjust image height
+                                      ),
+                                    ),
+                                  if (clickFiles["fileType"] == 'pdf')
+                                    Center(
+                                      child: Container(
+                                        color: Colors.grey[200],
+                                        width: 250, // Adjust icon width
+                                        height: 300, // Adjust icon height
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.picture_as_pdf,
+                                            size: 220, // Decrease PDF icon size
+                                            color: Colors.red,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  if (clickFiles["fileType"] == 'docx')
+                                    Center(
+                                      child: Container(
+                                        color: Colors.grey[200],
+                                        width: 250, // Adjust icon width
+                                        height: 300, // Adjust icon height
+                                        child: const Center(
+                                          child: Icon(
+                                            Icons.description,
+                                            size: 220, // Icon size
+                                            color: Colors.blue,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  if (clickFiles["fileType"] == 'xlsx')
+                                    Center(
+                                      child: Container(
+                                        color: Colors.grey[200],
+                                        width: 280, // Adjust icon width
+                                        height: 300, // Adjust icon height
+                                        child: Center(
+                                          child: SvgPicture.string(
+                                            '''<?xml version="1.0" ?><!DOCTYPE svg  PUBLIC '-//W3C//DTD SVG 1.1//EN'  'http://www.w3.org/Graphics/SVG/1.1/DTD/svg11.dtd'><svg enable-background="new 0 0 0 0" height="30px" id="Layer_1" version="1.1" viewBox="0 0 30 30" width="30px" xml:space="preserve" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink"><g><path clip-rule="evenodd" d="M28.705,7.506l-5.461-6.333l-1.08-1.254H9.262   c-1.732,0-3.133,1.403-3.133,3.136V7.04h1.942L8.07,3.818c0.002-0.975,0.786-1.764,1.758-1.764l11.034-0.01v5.228   c0.002,1.947,1.575,3.523,3.524,3.523h3.819l-0.188,15.081c-0.003,0.97-0.79,1.753-1.759,1.761l-16.57-0.008   c-0.887,0-1.601-0.87-1.605-1.942v-1.277H6.138v1.904c0,1.912,1.282,3.468,2.856,3.468l17.831-0.004   c1.732,0,3.137-1.41,3.137-3.139V8.966L28.705,7.506" fill="black" fill-rule="evenodd"/><path d="M20.223,25.382H0V6.068h20.223V25.382 M1.943,23.438h16.333V8.012H1.943" fill="green"/><polyline fill="green" points="15.73,20.822 12.325,20.822 10.001,17.538 7.561,20.822 4.14,20.822 8.384,15.486 4.957,10.817    8.412,10.817 10.016,13.355 11.726,10.817 15.242,10.817 11.649,15.486 15.73,20.822  "/></g></svg>''',
+                                            width: 200,
+                                            height: 280,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  if (clickFiles.isNotEmpty)
+                                    IconButton(
+                                      onPressed: () {
+                                        nextImage(1);
+                                      },
+                                      icon: const Icon(Icons.arrow_forward_ios),
+                                    )
+                                ],
+                              ),
+                            ),
+                          ),
+                          const Divider(),
+                          // SizedBox(
+                          //   height: 40.0,
+                          //   width: 120.0,
+                          //   child: TextButton(
+                          //     onPressed: () {
+                          //       _printScreen();
+                          //     },
+                          //     style: appButtonTheme.infoText,
+                          //     child: Row(
+                          //       mainAxisSize: MainAxisSize.min,
+                          //       children: const [
+                          //         Padding(
+                          //           padding: EdgeInsets.only(
+                          //               right: kTextPadding),
+                          //           child: Icon(Icons.print_rounded),
+                          //         ),
+                          //         Text('Print'),
+                          //       ],
+                          //     ),
+                          //   ),
+                          // ),
+                        ],
+                      ),
+                    ),
                   ),
-                ],
+                ),
               ),
-            ),
-          ),
-        ), //it's for when data available in selected session
-      ],
+            ],
+
+            // ... Other sections or cards
+          ],
+        ),
+      ),
     );
-  }
-
-  switchStepsType() {
-    setState(() => stepperType == StepperType.vertical
-        ? stepperType = StepperType.horizontal
-        : stepperType = StepperType.vertical);
-  }
-
-  tapped(int step) {
-    setState(() => _currentStep = step);
-  }
-
-  next() {
-    _currentStep < 2 ? setState(() => _currentStep += 1) : null;
-  }
-
-  back() {
-    _currentStep > 0 ? setState(() => _currentStep -= 1) : null;
   }
 
   create() {
@@ -2989,7 +3656,6 @@ class _StudentScreen extends State<StudentScreen> {
   }
 
   Future<void> saveFee() async {
-    print(currentDate);
     var data = {};
     var localDate = sbmittedFeeData["date"] ?? currentDate;
     var paymentMode = sbmittedFeeData["paymentMode"] ?? ["Case"];
@@ -3040,17 +3706,40 @@ class _StudentScreen extends State<StudentScreen> {
       '2022-2023',
     ];
     final foundPeople = arr.where(
-        (element) => element == "${currentDate.year}-${currentDate.year + 1}");
+        (element) => element == "${currentDate.year - 1}-${currentDate.year}");
     // var condition =
     //     arr.map((e) => return( "${currentDate.year}-${currentDate.year + 1}"));
     // print(foundPeople);
     if (foundPeople.isEmpty) {
-      arr.add("${currentDate.year}-${currentDate.year + 1}");
+      arr.add("${currentDate.year - 1}-${currentDate.year}");
     }
     // print(arr);
     setState(() {
       dropdowonOption = arr;
     });
+  }
+
+  void nextImage(int i) {
+    int index = selectedFiles.indexWhere((file) =>
+        file["fileName"] == clickFiles["fileName"] &&
+        file["fileContent"] == clickFiles["fileContent"] &&
+        file["fileType"] == clickFiles["fileType"]);
+    if (i == 0) {
+      var indx = index - 1;
+      if (indx != -1) {
+        setState(() {
+          clickFiles = selectedFiles[indx];
+        });
+      }
+    }
+    if (i == 1) {
+      var indx1 = index + 1;
+      if (indx1 < selectedFiles.length) {
+        setState(() {
+          clickFiles = selectedFiles[indx1];
+        });
+      }
+    }
   }
 }
 
@@ -3117,3 +3806,21 @@ class FormData {
         'address': address,
       };
 }
+
+// class PdfThumbnail extends StatelessWidget {
+//   final pdfPath; // Path to the PDF file
+//
+//   PdfThumbnail(this.pdfPath);
+//
+//   @override
+//   Widget build(BuildContext context) {
+//     return SizedBox(
+//       height: 100, // Set a specific height
+//       width: 100, // Set a specific width
+//       child: SfPdfViewer.file(
+//         // Display PDF from file path
+//         pdfPath,
+//       ),
+//     );
+//   }
+// }
