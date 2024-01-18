@@ -195,7 +195,6 @@ class _AddClassScreenState extends State<AddClassScreen> {
                 border: OutlineInputBorder(),
                 floatingLabelBehavior: FloatingLabelBehavior.always,
               ),
-              //initialValue: _formData.item,
               validator: FormBuilderValidators.required(),
               onSaved: (value) => (_formData.className = value ?? ''),
             ),
@@ -209,94 +208,12 @@ class _AddClassScreenState extends State<AddClassScreen> {
                 selectedColor: appColorScheme.warning,
                 decoration: const InputDecoration(
                   labelText: 'Subject List',
-                  //helperText: 'Theory Subject',
                   border: OutlineInputBorder(),
                 ),
                 options: subjectList1 ?? [],
-                // options:
-                // optionElement,
                 onSaved: (value) => (_formData.subject = value ?? []),
               )),
-          // Padding(
-          //   padding: const EdgeInsets.only(bottom: kDefaultPadding * 2.0),
-          //   child: LayoutBuilder(
-          //     builder: (context, constraints) {
-          //       return Row(
-          //         crossAxisAlignment: CrossAxisAlignment.start,
-          //         children: [
-          //           SizedBox(
-          //               width: ((constraints.maxWidth * 0.5) -
-          //                   (kDefaultPadding * 0.5)),
-          //               child:
-          //
-          //
-          //                   FormBuilderFilterChip(
-          //                 name: 'Practical_Subject',
-          //                 spacing: kDefaultPadding * 0.5,
-          //                 runSpacing: kDefaultPadding * 0.5,
-          //                 selectedColor: appColorScheme.warning,
-          //                 decoration: const InputDecoration(
-          //                   labelText: 'Practical Subject',
-          //                   // helperText: 'Mandatory',
-          //                   border: OutlineInputBorder(),
-          //                 ),
-          //                 options: subjectList1 ?? [],
-          //                 //  subjectList2 ?? [],
-          //                 onSaved: (value) => (_formData.subject2 = value!),
-          //
-          //                 // {
-          //                 //       if (value!.isNotEmpty)
-          //                 //         {
-          //                 //           res = [
-          //                 //             for (var emp in element)
-          //                 //               if (emp == value) emp
-          //                 //           ],
-          //                 //           if (res.isNotEmpty)
-          //                 //             {element.remove(value![0])}
-          //                 //           else
-          //                 //             {element.add(value![0])}
-          //                 //         }
-          //                 //       else
-          //                 //         {
-          //                 //           element.removeWhere((item) =>
-          //                 //               item.subjectType == 'PRACTICAL')
-          //                 //         },
-          //                 //       element = element.toSet().toList(),
-          //                 //     }
-          //               )),
-          //           const SizedBox(width: kDefaultPadding),
-          //           SizedBox(
-          //               width: ((constraints.maxWidth * 0.5) -
-          //                   (kDefaultPadding * 0.5)),
-          //               child: FormBuilderFilterChip(
-          //                   name: 'Other_Subject',
-          //                   spacing: kDefaultPadding * 0.5,
-          //                   runSpacing: kDefaultPadding * 0.5,
-          //                   selectedColor: appColorScheme.warning,
-          //                   decoration: const InputDecoration(
-          //                     labelText: 'Other Subject',
-          //                     //helperText: 'Theory Subject',
-          //                     border: OutlineInputBorder(),
-          //                   ),
-          //                   options: subjectList1 ?? [],
-          //                   onSaved: (value) => (_formData.subject3 = value!))),
-          //           // onChanged: (value) => {
-          //           //       print(value),
-          //           //       if (value!.isNotEmpty)
-          //           //         {element.add(value[0])}
-          //           //       else
-          //           //         {
-          //           //           element.removeWhere((item) =>
-          //           //               item["subjectType"] == 'OTHER')
-          //           //         },
-          //           //       element = element.toSet().toList(),
-          //           //       print(element)
-          //           //     })),
-          //         ],
-          //       );
-          //     },
-          //   ),
-          // ),
+
           Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -338,9 +255,6 @@ class _AddClassScreenState extends State<AddClassScreen> {
                       style:
                           themeData.extension<AppButtonTheme>()!.errorElevated,
                       onPressed: () => _doDelete(context),
-
-
-
                       child: Row(
                         mainAxisSize: MainAxisSize.min,
                         crossAxisAlignment: CrossAxisAlignment.center,
